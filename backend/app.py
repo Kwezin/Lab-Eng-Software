@@ -32,7 +32,8 @@ def create_app():
     # Habilitar CORS para permitir requisições do frontend
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:5000", "http://127.0.0.1:5000"],
+            "origins": ["http://localhost:5000", "http://127.0.0.1:5000",
+                        "http://localhost:8000", "http://127.0.0.1:8000"],
             "methods": ["GET", "POST", "PUT", "DELETE"],
             "allow_headers": ["Content-Type", "Authorization"]
         }
