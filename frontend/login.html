@@ -314,7 +314,7 @@
     </div>
 
     <script>
-        // Configuração da API
+        // Configuração da API - Sempre usar localhost:5000
         const API_URL = 'http://localhost:5000/api/auth';
 
         // Alternar entre tabs
@@ -379,11 +379,14 @@
             setButtonLoading(submitBtn, true);
             
             try {
+                console.log('Tentando fazer login em:', `${API_URL}/login`);
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
+                
+                console.log('Status da resposta:', response.status);
                 
                 const data = await response.json();
                 
@@ -394,13 +397,13 @@
                     localStorage.setItem('userName', data.name);
                     
                     // Redirecionar para a página principal
-                    window.location.href = 'discover.html';
+                    window.location.href = '/discover.html';
                 } else {
                     showError('login-error', data.error || 'Erro ao fazer login');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showError('login-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando.');
+                showError('login-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando em http://localhost:5000');
             } finally {
                 setButtonLoading(submitBtn, false);
             }
@@ -421,11 +424,15 @@
             setButtonLoading(submitBtn, true);
             
             try {
+                console.log('Tentando registrar em:', `${API_URL}/register`);
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password, bio })
                 });
+                
+                console.log('Status da resposta:', response.status);
+                console.log('Headers da resposta:', response.headers);
                 
                 const data = await response.json();
                 
@@ -442,14 +449,14 @@
                     
                     // Redirecionar após 1.5 segundos
                     setTimeout(() => {
-                        window.location.href = 'profile-edit.html';
+                        window.location.href = '/profile_edit.html';
                     }, 1500);
                 } else {
                     showError('register-error', data.error || 'Erro ao criar conta');
                 }
             } catch (error) {
                 console.error('Register error:', error);
-                showError('register-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando.');
+                showError('register-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando em http://localhost:5000');
             } finally {
                 setButtonLoading(submitBtn, false);
             }
@@ -459,7 +466,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
             if (token) {
-                window.location.href = 'discover.html';
+                window.location.href = '/discover.html';
             }
         });
     </script>

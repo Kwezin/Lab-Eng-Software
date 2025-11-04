@@ -5,7 +5,11 @@ Salvar como: backend/routes/profile_routes.py
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.database import get_db_connection
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import get_db_connection
 
 profile_bp = Blueprint('profile', __name__)
 

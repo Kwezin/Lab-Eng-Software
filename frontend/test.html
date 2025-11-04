@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API TINTIN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4ec9b0;
+            padding-bottom: 10px;
+        }
+
+        .test-section {
+            background: #252526;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007acc;
+            border-radius: 4px;
+        }
+
+        .test-title {
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .result {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .success {
+            background: #1e3a1f;
+            color: #4ec9b0;
+            border-left: 3px solid #4ec9b0;
+        }
+
+        .error {
+            background: #3a1f1f;
+            color: #f48771;
+            border-left: 3px solid #f48771;
+        }
+
+        .pending {
+            background: #3a3a1f;
+            color: #dcdcaa;
+            border-left: 3px solid #dcdcaa;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        .info {
+            background: #1f3a3f;
+            border-left: 4px solid #4ec9b0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #9cdcfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Conexão - TINTIN API</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Instruções:</strong><br>
+            Clique nos botões abaixo para testar se o backend está respondendo corretamente.
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">1️⃣ Teste de Health Check (básico)</div>
+            <button onclick="testHealth()">Testar Health</button>
+            <div id="health-result" class="result pending" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">2️⃣ Teste de Registro (novo usuário)</div>
+            <button onclick="testRegister()">Testar Registro</button>
+            <div id="register-result" class="result pending" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">3️⃣ Teste de Login</div>
+            <button onclick="testLogin()">Testar Login</button>
+            <div id="login-result" class="result pending" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">4️⃣ Teste Completo (Registrar + Login)</div>
+            <button onclick="testComplete()">Testar Completo</button>
+            <div id="complete-result" class="result pending" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🔍 Ver Logs da Rede</div>
+            <p style="font-size: 12px; color: #888;">Abra o DevTools (F12) → Aba "Network" para ver as requisições em tempo real</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        function showResult(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isSuccess ? 'success' : 'error'}`;
+            element.style.display = 'block';
+        }
+
+        async function testHealth() {
+            const resultId = 'health-result';
+            const element = document.getElementById(resultId);
+            element.textContent = '⏳ Testando...';
+            element.className = 'result pending';
+            element.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                showResult(resultId, 
+                    `✅ Sucesso!\nStatus: ${response.status}\nResposta: ${JSON.stringify(data, null, 2)}`, 
+                    response.ok
+                );
+            } catch (error) {
+                showResult(resultId, 
+                    `❌ Erro: ${error.message}\n\nVerifique se:\n- Backend está rodando: python backend/app.py\n- Porta 5000 está disponível\n- Sem firewall bloqueando`, 
+                    false
+                );
+            }
+        }
+
+        async function testRegister() {
+            const resultId = 'register-result';
+            const element = document.getElementById(resultId);
+            element.textContent = '⏳ Testando...';
+            element.className = 'result pending';
+            element.style.display = 'block';
+
+            const testEmail = `teste${Date.now()}@example.com`;
+            const payload = {
+                name: 'Usuário Teste',
+                email: testEmail,
+                password: 'senha123',
+                bio: 'Testando a API'
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(resultId, 
+                        `✅ Registro bem-sucedido!\nEmail: ${testEmail}\nUser ID: ${data.user_id}\nToken gerado: ${data.token.substring(0, 50)}...`, 
+                        true
+                    );
+                } else {
+                    showResult(resultId, 
+                        `❌ Erro no registro\nStatus: ${response.status}\nMensagem: ${data.error}`, 
+                        false
+                    );
+                }
+            } catch (error) {
+                showResult(resultId, 
+                    `❌ Erro de conexão: ${error.message}\n\nVerifique:\n- Backend está rodando\n- CORS está configurado\n- Porta 5000 não está bloqueada`, 
+                    false
+                );
+            }
+        }
+
+        async function testLogin() {
+            const resultId = 'login-result';
+            const element = document.getElementById(resultId);
+            element.textContent = '⏳ Testando...';
+            element.className = 'result pending';
+            element.style.display = 'block';
+
+            const payload = {
+                email: 'teste@example.com',
+                password: 'senha123'
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(resultId, 
+                        `✅ Login bem-sucedido!\nUser ID: ${data.user_id}\nNome: ${data.name}\nTipo: ${data.user_type}`, 
+                        true
+                    );
+                } else {
+                    showResult(resultId, 
+                        `⚠️ Erro no login (esperado se usuário não existe)\nStatus: ${response.status}\nMensagem: ${data.error}`, 
+                        false
+                    );
+                }
+            } catch (error) {
+                showResult(resultId, 
+                    `❌ Erro de conexão: ${error.message}`, 
+                    false
+                );
+            }
+        }
+
+        async function testComplete() {
+            const resultId = 'complete-result';
+            const element = document.getElementById(resultId);
+            element.textContent = '⏳ Executando teste completo...';
+            element.className = 'result pending';
+            element.style.display = 'block';
+
+            const testEmail = `completo${Date.now()}@example.com`;
+            const testPassword = 'senha123';
+
+            let results = '🧪 TESTE COMPLETO:\n\n';
+
+            try {
+                // 1. Registrar
+                results += '1️⃣ Registrando novo usuário...\n';
+                const registerRes = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Teste Completo',
+                        email: testEmail,
+                        password: testPassword,
+                        bio: 'Teste'
+                    })
+                });
+
+                const registerData = await registerRes.json();
+                if (!registerRes.ok) throw new Error(`Registro falhou: ${registerData.error}`);
+                
+                results += `✅ Usuário registrado com sucesso\n`;
+                results += `   Email: ${testEmail}\n`;
+                results += `   User ID: ${registerData.user_id}\n\n`;
+
+                // 2. Login
+                results += '2️⃣ Fazendo login...\n';
+                const loginRes = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: testPassword
+                    })
+                });
+
+                const loginData = await loginRes.json();
+                if (!loginRes.ok) throw new Error(`Login falhou: ${loginData.error}`);
+                
+                results += `✅ Login bem-sucedido\n`;
+                results += `   Nome: ${loginData.name}\n`;
+                results += `   ID: ${loginData.user_id}\n`;
+                results += `   Token: ${loginData.token.substring(0, 50)}...\n\n`;
+
+                results += '✨ TUDO FUNCIONANDO PERFEITAMENTE!\n';
+                results += 'Agora você pode usar o login.html normalmente.';
+                
+                showResult(resultId, results, true);
+            } catch (error) {
+                results += `\n❌ ERRO: ${error.message}`;
+                showResult(resultId, results, false);
+            }
+        }
+
+        // Auto-testar health ao carregar
+        window.addEventListener('DOMContentLoaded', testHealth);
+    </script>
+</body>
+</html>

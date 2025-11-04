@@ -1,9 +1,9 @@
 """
-Aplicação Flask Principal
+Aplicação Flask Principal com Frontend Integrado
 Salvar como: backend/app.py
 """
 
-from flask import Flask
+from flask import Flask, send_from_directory, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
@@ -22,7 +22,7 @@ from database import init_database
 
 def create_app():
     """Cria e configura a aplicação Flask"""
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../frontend', static_url_path='')
     
     # Configurações
     app.config['SECRET_KEY'] = 'sua-chave-secreta-aqui-mude-em-producao'
@@ -30,17 +30,23 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
     
     # Habilitar CORS para permitir requisições do frontend
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["http://localhost:5000", "http://127.0.0.1:5000",
-                        "http://localhost:8000", "http://127.0.0.1:8000"],
-            "methods": ["GET", "POST", "PUT", "DELETE"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
+    CORS(app, 
+        origins=["http://localhost:5000", "http://127.0.0.1:5000",
+                 "http://localhost:8000", "http://127.0.0.1:8000"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+        supports_credentials=True
+    )
     
     # Inicializar JWT
     jwt = JWTManager(app)
+    
+    # Log de requisições para debug
+    @app.before_request
+    def log_request():
+        print(f"📨 {request.method} {request.path}")
+        if request.method in ['POST', 'PUT']:
+            print(f"   Body: {request.get_json()}")
     
     # Registrar blueprints (rotas)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -49,21 +55,34 @@ def create_app():
     app.register_blueprint(chat_bp, url_prefix='/api/chat')
     
     # Rota de teste
-    @app.route('/')
-    def index():
+    @app.route('/api')
+    def api_index():
         return {
             'message': 'TINTIN API está funcionando!',
             'version': '1.0.0',
             'endpoints': {
                 'auth': '/api/auth',
-                'discover': '/api/discover'
+                'discover': '/api/discover',
+                'profile': '/api/profile',
+                'chat': '/api/chat'
             }
         }
     
     # Rota de health check
-    @app.route('/health')
+    @app.route('/api/health')
     def health():
         return {'status': 'healthy'}, 200
+    
+    # Servir arquivos estáticos do frontend
+    @app.route('/')
+    def index():
+        """Redireciona para a página de login"""
+        return send_from_directory(app.static_folder, 'login.html')
+    
+    @app.route('/<path:filename>')
+    def serve_static(filename):
+        """Serve arquivos estáticos (HTML, CSS, JS, etc)"""
+        return send_from_directory(app.static_folder, filename)
     
     return app
 
@@ -78,6 +97,9 @@ if __name__ == '__main__':
     print("🚀 Iniciando servidor Flask...")
     print("📍 Acesse: http://localhost:5000")
     print("📍 API: http://localhost:5000/api")
+    print("")
+    print("⏹️  Para parar: Ctrl+C")
+    print("")
     
     app.run(
         host='0.0.0.0',
