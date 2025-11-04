@@ -82,6 +82,9 @@ def create_app():
     @app.route('/<path:filename>')
     def serve_static(filename):
         """Serve arquivos estáticos (HTML, CSS, JS, etc)"""
+        # Permitir acessar test.html sem autenticação
+        if filename == 'test.html':
+            return send_from_directory(app.static_folder, filename)
         return send_from_directory(app.static_folder, filename)
     
     return app

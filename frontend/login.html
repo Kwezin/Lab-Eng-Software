@@ -314,8 +314,10 @@
     </div>
 
     <script>
-        // Configuração da API - Sempre usar localhost:5000
-        const API_URL = 'http://localhost:5000/api/auth';
+        // Configuração da API - Detecta automaticamente o domínio
+        // Em localhost: http://localhost:5000/api/auth
+        // Em Codespace: https://seu-dominio.app.github.dev/api/auth
+        const API_URL = `${window.location.origin}/api/auth`;
 
         // Alternar entre tabs
         function showTab(tabName) {
