@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TINTIN - Meus Matches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #667eea;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .match-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .match-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .match-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .match-info {
+            flex: 1;
+        }
+
+        .match-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .match-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .type-teacher {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .type-student {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .match-date {
+            font-size: 13px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .match-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .skill-tag {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .chat-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .no-matches {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .no-matches-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .no-matches h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .no-matches p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .discover-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .discover-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            padding: 40px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎓 TINTIN</h1>
+        <div class="nav-menu">
+            <a href="discover.html" class="nav-btn">🔍 Descobrir</a>
+            <a href="matches.html" class="nav-btn active">💬 Matches</a>
+            <a href="profile.html" class="nav-btn">👤 Perfil</a>
+            <button class="nav-btn" onclick="logout()">🚪 Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando seus matches...</p>
+        </div>
+
+        <div id="matches-container" class="matches-grid" style="display: none;"></div>
+
+        <div id="no-matches" class="no-matches" style="display: none;">
+            <div class="no-matches-icon">💔</div>
+            <h2>Nenhum match ainda</h2>
+            <p>Continue dando like para encontrar parceiros de estudo!</p>
+            <a href="discover.html" class="discover-btn">🔍 Descobrir Pessoas</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Hoje';
+            if (diffDays === 1) return 'Ontem';
+            if (diffDays < 7) return `${diffDays} dias atrás`;
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        async function loadMatches() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/discover/matches`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayMatches(data.matches);
+                } else {
+                    console.error('Erro ao carregar matches');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayMatches(matches) {
+            const container = document.getElementById('matches-container');
+            const noMatches = document.getElementById('no-matches');
+
+            if (matches.length === 0) {
+                noMatches.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            container.innerHTML = matches.map(match => {
+                const isTeacher = match.other_user_type === 'teacher';
+                const emoji = isTeacher ? '👨‍🏫' : '📚';
+                const typeClass = isTeacher ? 'type-teacher' : 'type-student';
+                const typeText = isTeacher ? 'Professor' : 'Aluno';
+
+                return `
+                    <div class="match-card" onclick="openChat(${match.match_id}, '${match.other_user_name}')">
+                        <div class="match-header">
+                            <div class="match-avatar">${emoji}</div>
+                            <div class="match-info">
+                                <div class="match-name">${match.other_user_name}</div>
+                                <span class="match-type ${typeClass}">${typeText}</span>
+                            </div>
+                        </div>
+                        <div class="match-date">
+                            Match em ${formatDate(match.matched_at)}
+                        </div>
+                        <button class="chat-btn" onclick="event.stopPropagation(); openChat(${match.match_id}, '${match.other_user_name}')">
+                            💬 Iniciar Conversa
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openChat(matchId, userName) {
+            window.location.href = `chat.html?match_id=${matchId}&name=${encodeURIComponent(userName)}`;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('authToken')) {
+                window.location.href = 'login.html';
+            } else {
+                loadMatches();
+            }
+        });
+    </script>
+</body>
+</html>

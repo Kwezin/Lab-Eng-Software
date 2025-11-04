@@ -7,11 +7,18 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+import sys
+import os
+
+# Adicionar o diretório pai ao path para imports funcionarem
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importar rotas
-from backend.routes.auth_routes import auth_bp
-from backend.routes.discover_routes import discover_bp
-from backend.database import init_database
+from routes.auth_routes import auth_bp
+from routes.discover_routes import discover_bp
+from routes.profile_routes import profile_bp
+from routes.chat_routes import chat_bp
+from database import init_database
 
 def create_app():
     """Cria e configura a aplicação Flask"""
@@ -37,6 +44,7 @@ def create_app():
     # Registrar blueprints (rotas)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(discover_bp, url_prefix='/api/discover')
+    app.register_blueprint(profile_bp, url_prefix='/api/profile')
     
     # Rota de teste
     @app.route('/')

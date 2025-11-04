@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TINTIN - Descobrir</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            text-align: center;
+            color: #667eea;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+        }
+
+        .nav-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .card-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-card {
+            width: 100%;
+            max-width: 450px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .profile-card:active {
+            cursor: grabbing;
+        }
+
+        .profile-card.swiping-left {
+            transform: translateX(-100px) rotate(-10deg);
+            opacity: 0.8;
+        }
+
+        .profile-card.swiping-right {
+            transform: translateX(100px) rotate(10deg);
+            opacity: 0.8;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 350px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            position: relative;
+        }
+
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .swipe-indicator.like {
+            left: 30px;
+            color: #4ade80;
+        }
+
+        .swipe-indicator.skip {
+            right: 30px;
+            color: #f87171;
+        }
+
+        .profile-card.swiping-right .swipe-indicator.like {
+            opacity: 1;
+        }
+
+        .profile-card.swiping-left .swipe-indicator.skip {
+            opacity: 1;
+        }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+        }
+
+        .card-header h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .user-type-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .badge-teacher {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-student {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .card-bio {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .skills-section, .interests-section {
+            margin-top: 15px;
+        }
+
+        .skills-section h3, .interests-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: #f0f0f0;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px 0;
+        }
+
+        .action-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-skip {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+
+        .btn-like {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+        }
+
+        .no-more-cards {
+            text-align: center;
+            color: white;
+            display: none;
+        }
+
+        .no-more-cards.show {
+            display: block;
+        }
+
+        .no-more-cards h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .match-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .match-popup.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .match-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .match-content h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .match-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 TINTIN</h1>
+        </div>
+
+        <div class="card-container" id="card-container">
+            <div class="loading" id="loading">Carregando perfis...</div>
+            <div class="no-more-cards" id="no-more-cards">
+                <h2>😊</h2>
+                <p>Não há mais perfis no momento</p>
+                <p>Volte mais tarde para ver novos usuários!</p>
+            </div>
+        </div>
+
+        <div class="buttons" id="buttons" style="display: none;">
+            <button class="action-btn btn-skip" onclick="swipeLeft()">✕</button>
+            <button class="action-btn btn-like" onclick="swipeRight()">❤️</button>
+        </div>
+    </div>
+
+    <div class="match-popup" id="match-popup">
+        <div class="match-content">
+            <h2>🎉 É um Match!</h2>
+            <p id="match-message"></p>
+            <button class="match-btn" onclick="closeMatchPopup()">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentProfiles = [];
+        let currentIndex = 0;
+        let isDragging = false;
+        let startX = 0;
+        let currentCard = null;
+
+        async function loadProfiles() {
+            const token = localStorage.getItem('authToken');
+            const userId = localStorage.getItem('userId');
+
+            try {
+                const response = await fetch(`${API_URL}/discover/profiles`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentProfiles = data.profiles;
+                    document.getElementById('loading').style.display = 'none';
+
+                    if (currentProfiles.length > 0) {
+                        showCurrentCard();
+                        document.getElementById('buttons').style.display = 'flex';
+                    } else {
+                        document.getElementById('no-more-cards').classList.add('show');
+                    }
+                } else {
+                    console.error('Erro ao carregar perfis');
+                    document.getElementById('loading').textContent = 'Erro ao carregar perfis';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('loading').textContent = 'Erro de conexão';
+            }
+        }
+
+        function showCurrentCard() {
+            if (currentIndex >= currentProfiles.length) {
+                document.getElementById('no-more-cards').classList.add('show');
+                document.getElementById('buttons').style.display = 'none';
+                return;
+            }
+
+            const profile = currentProfiles[currentIndex];
+            const card = createCard(profile);
+            document.getElementById('card-container').appendChild(card);
+            currentCard = card;
+
+            // Adicionar eventos de mouse/touch
+            card.addEventListener('mousedown', handleDragStart);
+            card.addEventListener('touchstart', handleDragStart);
+        }
+
+        function createCard(profile) {
+            const card = document.createElement('div');
+            card.className = 'profile-card';
+            
+            const isTeacher = profile.user_type === 'teacher';
+            const emoji = isTeacher ? '👨‍🏫' : '📚';
+            const badgeClass = isTeacher ? 'badge-teacher' : 'badge-student';
+            const badgeText = isTeacher ? 'Professor' : 'Aluno';
+
+            let tagsHTML = '';
+            if (isTeacher && profile.skills) {
+                tagsHTML = `
+                    <div class="skills-section">
+                        <h3>Pode ensinar:</h3>
+                        <div class="tags">
+                            ${profile.skills.map(s => `<span class="tag">${s.skill_name}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (!isTeacher && profile.interests) {
+                tagsHTML = `
+                    <div class="interests-section">
+                        <h3>Quer aprender:</h3>
+                        <div class="tags">
+                            ${profile.interests.map(i => `<span class="tag">${i.interest_name} (${i.difficulty_level})</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="card-image">
+                    ${emoji}
+                    <div class="swipe-indicator like">LIKE</div>
+                    <div class="swipe-indicator skip">SKIP</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="user-type-badge ${badgeClass}">${badgeText}</span>
+                        <h2>${profile.name}</h2>
+                    </div>
+                    <div class="card-bio">${profile.bio || 'Sem descrição'}</div>
+                    ${tagsHTML}
+                </div>
+            `;
+
+            return card;
+        }
+
+        function handleDragStart(e) {
+            isDragging = true;
+            startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', handleDragEnd);
+            document.addEventListener('touchmove', handleDragMove);
+            document.addEventListener('touchend', handleDragEnd);
+        }
+
+        function handleDragMove(e) {
+            if (!isDragging) return;
+            
+            const currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - startX;
+            
+            currentCard.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+            
+            if (diff > 50) {
+                currentCard.classList.add('swiping-right');
+                currentCard.classList.remove('swiping-left');
+            } else if (diff < -50) {
+                currentCard.classList.add('swiping-left');
+                currentCard.classList.remove('swiping-right');
+            } else {
+                currentCard.classList.remove('swiping-left', 'swiping-right');
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            const currentX = e.type === 'mouseup' ? e.clientX : e.changedTouches[0].clientX;
+            const diff = currentX - startX;
+            
+            document.removeEventListener('mousemove', handleDragMove);
+            document.removeEventListener('mouseup', handleDragEnd);
+            document.removeEventListener('touchmove', handleDragMove);
+            document.removeEventListener('touchend', handleDragEnd);
+            
+            if (diff > 100) {
+                swipeRight(true);
+            } else if (diff < -100) {
+                swipeLeft(true);
+            } else {
+                currentCard.style.transform = '';
+                currentCard.classList.remove('swiping-left', 'swiping-right');
+            }
+        }
+
+        async function swipeRight(fromDrag = false) {
+            if (!currentCard) return;
+            
+            currentCard.style.transform = 'translateX(500px) rotate(20deg)';
+            currentCard.style.opacity = '0';
+            
+            await sendSwipe('like');
+            nextCard();
+        }
+
+        async function swipeLeft(fromDrag = false) {
+            if (!currentCard) return;
+            
+            currentCard.style.transform = 'translateX(-500px) rotate(-20deg)';
+            currentCard.style.opacity = '0';
+            
+            await sendSwipe('skip');
+            nextCard();
+        }
+
+        async function sendSwipe(type) {
+            const token = localStorage.getItem('authToken');
+            const profile = currentProfiles[currentIndex];
+
+            try {
+                const response = await fetch(`${API_URL}/swipe`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        to_user_id: profile.id,
+                        swipe_type: type
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.match) {
+                        showMatchPopup(profile.name);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao enviar swipe:', error);
+            }
+        }
+
+        function nextCard() {
+            setTimeout(() => {
+                if (currentCard) {
+                    currentCard.remove();
+                }
+                currentIndex++;
+                showCurrentCard();
+            }, 300);
+        }
+
+        function showMatchPopup(name) {
+            document.getElementById('match-message').textContent = `Você e ${name} deram match! Comece a conversar agora.`;
+            document.getElementById('match-popup').classList.add('show');
+        }
+
+        function closeMatchPopup() {
+            document.getElementById('match-popup').classList.remove('show');
+        }
+
+        // Verificar autenticação e carregar perfis
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('authToken')) {
+                window.location.href = 'login.html';
+            } else {
+                loadProfiles();
+            }
+        });
+    </script>
+</body>
+</html>
