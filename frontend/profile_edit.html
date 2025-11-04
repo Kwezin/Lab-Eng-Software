@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TINTIN - Complete seu Perfil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .user-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .type-option {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .type-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .type-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+        }
+
+        .type-option .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .type-option h3 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .type-option p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .skill-list, .interest-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .skill-tag, .interest-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-btn {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-item-group {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .interest-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .interest-card .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Complete seu Perfil</h1>
+            <p>Escolha como você deseja participar</p>
+        </div>
+
+        <div class="card">
+            <div class="user-type-selector">
+                <div class="type-option" onclick="selectUserType('student')">
+                    <div class="icon">📚</div>
+                    <h3>Quero Aprender</h3>
+                    <p>Encontre professores para te ajudar</p>
+                </div>
+                <div class="type-option" onclick="selectUserType('teacher')">
+                    <div class="icon">👨‍🏫</div>
+                    <h3>Quero Ensinar</h3>
+                    <p>Compartilhe seu conhecimento</p>
+                </div>
+            </div>
+
+            <!-- Formulário para Alunos -->
+            <form id="student-form" class="form-section">
+                <h2 style="margin-bottom: 20px;">O que você quer aprender?</h2>
+                
+                <div class="add-item-group">
+                    <div style="display: grid; gap: 10px;">
+                        <input type="text" id="interest-name" placeholder="Ex: Python, Trocar Chuveiro, Tocar Violão...">
+                        <select id="interest-difficulty">
+                            <option value="beginner">Iniciante</option>
+                            <option value="intermediate">Intermediário</option>
+                            <option value="advanced">Avançado</option>
+                        </select>
+                        <textarea id="interest-description" placeholder="Descreva o que você quer aprender (opcional)" rows="2"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addInterest()">Adicionar</button>
+                </div>
+
+                <div id="interests-container" class="interest-list" style="margin-top: 20px;"></div>
+
+                <button type="submit" class="btn btn-primary">Concluir Cadastro</button>
+                <div id="student-error" class="error-message"></div>
+            </form>
+
+            <!-- Formulário para Professores -->
+            <form id="teacher-form" class="form-section">
+                <h2 style="margin-bottom: 20px;">O que você pode ensinar?</h2>
+                
+                <div class="add-item-group">
+                    <div style="display: grid; gap: 10px;">
+                        <input type="text" id="skill-name" placeholder="Ex: Python, Eletricista, Violão...">
+                        <textarea id="skill-description" placeholder="Descreva sua experiência (opcional)" rows="2"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addSkill()">Adicionar</button>
+                </div>
+
+                <div id="skills-container" class="skill-list" style="margin-top: 20px;"></div>
+
+                <button type="submit" class="btn btn-primary">Concluir Cadastro</button>
+                <div id="teacher-error" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api/auth';
+        let selectedUserType = null;
+        let interests = [];
+        let skills = [];
+
+        function selectUserType(type) {
+            selectedUserType = type;
+            
+            document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.closest('.type-option').classList.add('selected');
+            
+            document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
+            document.getElementById(`${type}-form`).classList.add('active');
+        }
+
+        function addInterest() {
+            const name = document.getElementById('interest-name').value.trim();
+            const difficulty = document.getElementById('interest-difficulty').value;
+            const description = document.getElementById('interest-description').value.trim();
+
+            if (!name) {
+                alert('Por favor, digite o que você quer aprender');
+                return;
+            }
+
+            interests.push({ name, difficulty, description });
+            renderInterests();
+            
+            document.getElementById('interest-name').value = '';
+            document.getElementById('interest-description').value = '';
+        }
+
+        function renderInterests() {
+            const container = document.getElementById('interests-container');
+            container.innerHTML = interests.map((interest, index) => `
+                <div class="interest-card">
+                    <button class="remove-btn" onclick="removeInterest(${index})">×</button>
+                    <strong>${interest.name}</strong>
+                    <div style="color: #666; font-size: 14px; margin-top: 5px;">
+                        Nível: ${interest.difficulty === 'beginner' ? 'Iniciante' : interest.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                    </div>
+                    ${interest.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${interest.description}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function removeInterest(index) {
+            interests.splice(index, 1);
+            renderInterests();
+        }
+
+        function addSkill() {
+            const name = document.getElementById('skill-name').value.trim();
+            const description = document.getElementById('skill-description').value.trim();
+
+            if (!name) {
+                alert('Por favor, digite o que você pode ensinar');
+                return;
+            }
+
+            skills.push({ name, description });
+            renderSkills();
+            
+            document.getElementById('skill-name').value = '';
+            document.getElementById('skill-description').value = '';
+        }
+
+        function renderSkills() {
+            const container = document.getElementById('skills-container');
+            container.innerHTML = skills.map((skill, index) => `
+                <div class="interest-card">
+                    <button class="remove-btn" onclick="removeSkill(${index})">×</button>
+                    <strong>${skill.name}</strong>
+                    ${skill.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${skill.description}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function removeSkill(index) {
+            skills.splice(index, 1);
+            renderSkills();
+        }
+
+        // Submit do formulário de aluno
+        document.getElementById('student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (interests.length === 0) {
+                document.getElementById('student-error').textContent = 'Adicione pelo menos um interesse';
+                document.getElementById('student-error').classList.add('show');
+                return;
+            }
+
+            await completeProfile('student', { interests });
+        });
+
+        // Submit do formulário de professor
+        document.getElementById('teacher-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (skills.length === 0) {
+                document.getElementById('teacher-error').textContent = 'Adicione pelo menos uma habilidade';
+                document.getElementById('teacher-error').classList.add('show');
+                return;
+            }
+
+            await completeProfile('teacher', { skills });
+        });
+
+        async function completeProfile(userType, data) {
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('authToken');
+
+            try {
+                const response = await fetch(`${API_URL}/complete-profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        user_type: userType,
+                        ...data
+                    })
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('userType', userType);
+                    window.location.href = 'discover.html';
+                } else {
+                    const error = await response.json();
+                    document.getElementById(`${userType}-error`).textContent = error.error;
+                    document.getElementById(`${userType}-error`).classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById(`${userType}-error`).textContent = 'Erro ao salvar perfil';
+                document.getElementById(`${userType}-error`).classList.add('show');
+            }
+        }
+
+        // Verificar se está logado
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('authToken')) {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

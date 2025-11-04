@@ -45,6 +45,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(discover_bp, url_prefix='/api/discover')
     app.register_blueprint(profile_bp, url_prefix='/api/profile')
+    app.register_blueprint(chat_bp, url_prefix='/api/chat')
     
     # Rota de teste
     @app.route('/')
