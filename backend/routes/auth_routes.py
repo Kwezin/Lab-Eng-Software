@@ -4,26 +4,17 @@ Salvar como: backend/routes/auth_routes.py
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import sys
+import os
+
+# Adicionar o diretório pai ao path para importar database
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import get_db_connection
 
 auth_bp = Blueprint('auth', __name__)
-
-# Configuração do banco de dados
-DB_CONFIG = {
-    'host': 'localhost',
-    'database': 'tintin_db',
-    'user': 'postgres',
-    'password': 'postgres',
-    'port': '5432'
-}
-
-def get_db_connection():
-    """Retorna uma conexão com o banco de dados"""
-    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -37,13 +28,6 @@ def register():
         "email": "email@example.com",
         "password": "senha123",
         "bio": "Descrição opcional"
-    }
-    
-    Retorna:
-    {
-        "message": "Usuário criado com sucesso",
-        "token": "jwt_token",
-        "user_id": 1
     }
     """
     data = request.get_json()
@@ -60,19 +44,21 @@ def register():
     if len(data['password']) < 6:
         return jsonify({'error': 'Senha deve ter no mínimo 6 caracteres'}), 400
     
-    conn = get_db_connection()
-    cur = conn.cursor()
+    conn = None
+    cursor = None
     
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
         # Criptografar senha
         password_hash = generate_password_hash(data['password'])
         
         # Inserir usuário no banco
-        cur.execute(
+        cursor.execute(
             '''
             INSERT INTO users (name, email, password_hash, photo_url, bio) 
-            VALUES (%s, %s, %s, %s, %s) 
-            RETURNING id
+            VALUES (?, ?, ?, ?, ?)
             ''',
             (
                 data['name'].strip(),
@@ -83,7 +69,7 @@ def register():
             )
         )
         
-        user_id = cur.fetchone()['id']
+        user_id = cursor.lastrowid
         conn.commit()
         
         # Gerar token JWT (válido por 7 dias)
@@ -98,19 +84,22 @@ def register():
             'user_id': user_id
         }), 201
         
-    except psycopg2.IntegrityError as e:
-        conn.rollback()
-        # Email já existe
-        return jsonify({'error': 'Email já cadastrado'}), 409
-        
     except Exception as e:
-        conn.rollback()
+        if conn:
+            conn.rollback()
+        
+        error_msg = str(e).lower()
+        if 'unique' in error_msg or 'email' in error_msg:
+            return jsonify({'error': 'Email já cadastrado'}), 409
+        
         print(f"Erro ao cadastrar usuário: {e}")
         return jsonify({'error': 'Erro ao criar conta. Tente novamente.'}), 500
         
     finally:
-        cur.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -123,13 +112,6 @@ def login():
         "email": "email@example.com",
         "password": "senha123"
     }
-    
-    Retorna:
-    {
-        "token": "jwt_token",
-        "user_id": 1,
-        "name": "Nome do Usuário"
-    }
     """
     data = request.get_json()
     
@@ -137,16 +119,19 @@ def login():
     if not all(k in data for k in ['email', 'password']):
         return jsonify({'error': 'Email e senha são obrigatórios'}), 400
     
-    conn = get_db_connection()
-    cur = conn.cursor()
+    conn = None
+    cursor = None
     
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
         # Buscar usuário por email
-        cur.execute(
-            'SELECT id, name, email, password_hash FROM users WHERE email = %s',
+        cursor.execute(
+            'SELECT id, name, email, password_hash FROM users WHERE email = ?',
             (data['email'].lower().strip(),)
         )
-        user = cur.fetchone()
+        user = cursor.fetchone()
         
         # Verificar se usuário existe e senha está correta
         if user and check_password_hash(user['password_hash'], data['password']):
@@ -169,24 +154,21 @@ def login():
         return jsonify({'error': 'Erro ao fazer login. Tente novamente.'}), 500
         
     finally:
-        cur.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @auth_bp.route('/validate', methods=['GET'])
+@jwt_required()
 def validate_token():
     """
     Rota para validar se o token JWT ainda é válido
     Requer token no header: Authorization: Bearer <token>
     """
-    from flask_jwt_extended import jwt_required, get_jwt_identity
-    
-    @jwt_required()
-    def _validate():
-        user_id = get_jwt_identity()
-        return jsonify({
-            'valid': True,
-            'user_id': user_id
-        }), 200
-    
-    return _validate()
+    user_id = get_jwt_identity()
+    return jsonify({
+        'valid': True,
+        'user_id': user_id
+    }), 200
