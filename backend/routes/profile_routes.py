@@ -24,8 +24,7 @@ def complete_profile():
     {
         "user_type": "student" ou "teacher",
         "skills": [  // Se for teacher
-            {"name": "Python", "description": "5 anos de experiência"},
-            {"name": "Trocar Chuveiro", "description": "Eletricista"}
+            {"name": "Python", "description": "5 anos de experiência"}
         ],
         "interests": [  // Se for student
             {
@@ -38,7 +37,10 @@ def complete_profile():
     """
     current_user_id = get_jwt_identity()
     data = request.get_json()
-    print(data)
+    
+    print(f"📥 Dados recebidos: {data}")
+    print(f"👤 User ID: {current_user_id}")
+    
     if 'user_type' not in data:
         return jsonify({'error': 'Tipo de usuário é obrigatório'}), 400
     
@@ -54,6 +56,7 @@ def complete_profile():
             'UPDATE users SET user_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
             (data['user_type'], current_user_id)
         )
+        print(f"✅ Tipo de usuário atualizado para: {data['user_type']}")
         
         # Se for professor, adicionar habilidades
         if data['user_type'] == 'teacher' and 'skills' in data:
@@ -68,6 +71,7 @@ def complete_profile():
                     'INSERT INTO teacher_skills (user_id, skill_name, skill_description) VALUES (?, ?, ?)',
                     (current_user_id, skill['name'], skill.get('description', ''))
                 )
+                print(f"✅ Habilidade adicionada: {skill['name']}")
         
         # Se for aluno, adicionar interesses
         elif data['user_type'] == 'student' and 'interests' in data:
@@ -91,8 +95,10 @@ def complete_profile():
                         interest.get('description', '')
                     )
                 )
+                print(f"✅ Interesse adicionado: {interest['name']}")
         
         conn.commit()
+        print("✅ Perfil completado com sucesso!")
         
         return jsonify({
             'message': 'Perfil completado com sucesso',
@@ -101,8 +107,8 @@ def complete_profile():
         
     except Exception as e:
         conn.rollback()
-        print(f"Erro ao completar perfil: {e}")
-        return jsonify({'error': 'Erro ao salvar perfil'}), 500
+        print(f"❌ Erro ao completar perfil: {e}")
+        return jsonify({'error': f'Erro ao salvar perfil: {str(e)}'}), 500
         
     finally:
         conn.close()

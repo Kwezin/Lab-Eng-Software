@@ -314,12 +314,8 @@
     </div>
 
     <script>
-        // Configuração da API - Detecta automaticamente o domínio
-        // Em localhost: http://localhost:5000/api/auth
-        // Em Codespace: https://seu-dominio.app.github.dev/api/auth
-        const API_URL = `${window.location.origin}/api/auth`;
+        const API_URL = 'http://localhost:8080/api/auth';
 
-        // Alternar entre tabs
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
@@ -332,32 +328,27 @@
                 document.getElementById('register-form').classList.add('active');
             }
             
-            // Limpar mensagens de erro
             hideError('login-error');
             hideError('register-error');
             document.getElementById('register-success').classList.remove('show');
         }
 
-        // Mostrar/ocultar senha
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             input.type = input.type === 'password' ? 'text' : 'password';
         }
 
-        // Mostrar erro
         function showError(elementId, message) {
             const errorDiv = document.getElementById(elementId);
             errorDiv.textContent = message;
             errorDiv.classList.add('show');
         }
 
-        // Ocultar erro
         function hideError(elementId) {
             const errorDiv = document.getElementById(elementId);
             errorDiv.classList.remove('show');
         }
 
-        // Mostrar loading no botão
         function setButtonLoading(button, isLoading) {
             const btnText = button.querySelector('.btn-text');
             if (isLoading) {
@@ -381,31 +372,32 @@
             setButtonLoading(submitBtn, true);
             
             try {
-                console.log('Tentando fazer login em:', `${API_URL}/login`);
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
                 
-                console.log('Status da resposta:', response.status);
-                
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Salvar token e dados do usuário
                     localStorage.setItem('authToken', data.token);
                     localStorage.setItem('userId', data.user_id);
                     localStorage.setItem('userName', data.name);
+                    localStorage.setItem('userType', data.user_type);
                     
-                    // Redirecionar para a página principal
-                    window.location.href = '/discover.html';
+                    // Se user_type for 'student' (padrão), redirecionar para completar perfil
+                    if (data.user_type === 'student') {
+                        window.location.href = '/profile_edit.html';
+                    } else {
+                        window.location.href = '/discover.html';
+                    }
                 } else {
                     showError('login-error', data.error || 'Erro ao fazer login');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showError('login-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando em http://localhost:5000');
+                showError('login-error', 'Erro de conexão com o servidor');
             } finally {
                 setButtonLoading(submitBtn, false);
             }
@@ -426,30 +418,23 @@
             setButtonLoading(submitBtn, true);
             
             try {
-                console.log('Tentando registrar em:', `${API_URL}/register`);
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password, bio })
                 });
                 
-                console.log('Status da resposta:', response.status);
-                console.log('Headers da resposta:', response.headers);
-                
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Salvar token e dados do usuário
                     localStorage.setItem('authToken', data.token);
                     localStorage.setItem('userId', data.user_id);
                     localStorage.setItem('userName', name);
                     
-                    // Mostrar mensagem de sucesso
                     const successDiv = document.getElementById('register-success');
-                    successDiv.textContent = 'Conta criada com sucesso! Redirecionando...';
+                    successDiv.textContent = 'Conta criada! Complete seu perfil...';
                     successDiv.classList.add('show');
                     
-                    // Redirecionar após 1.5 segundos
                     setTimeout(() => {
                         window.location.href = '/profile_edit.html';
                     }, 1500);
@@ -458,7 +443,7 @@
                 }
             } catch (error) {
                 console.error('Register error:', error);
-                showError('register-error', 'Erro de conexão com o servidor. Verifique se o backend está rodando em http://localhost:5000');
+                showError('register-error', 'Erro de conexão com o servidor');
             } finally {
                 setButtonLoading(submitBtn, false);
             }
@@ -467,8 +452,15 @@
         // Verificar se já está logado
         window.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
+            const userType = localStorage.getItem('userType');
+            
             if (token) {
-                window.location.href = '/discover.html';
+                // Se já tem token mas user_type é 'student', precisa completar perfil
+                if (userType === 'student') {
+                    window.location.href = '/profile_edit.html';
+                } else {
+                    window.location.href = '/discover.html';
+                }
             }
         });
     </script>

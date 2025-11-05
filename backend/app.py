@@ -31,8 +31,8 @@ def create_app():
     
     # Habilitar CORS para permitir requisições do frontend
     CORS(app, 
-        origins=["http://localhost:5000", "http://127.0.0.1:5000",
-                 "http://localhost:8000", "http://127.0.0.1:8000"],
+        origins=["http://localhost:8080", "http://127.0.0.1:8080",
+                 "http://localhost:5000", "http://127.0.0.1:5000"],
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
         supports_credentials=True
@@ -82,9 +82,6 @@ def create_app():
     @app.route('/<path:filename>')
     def serve_static(filename):
         """Serve arquivos estáticos (HTML, CSS, JS, etc)"""
-        # Permitir acessar test.html sem autenticação
-        if filename == 'test.html':
-            return send_from_directory(app.static_folder, filename)
         return send_from_directory(app.static_folder, filename)
     
     return app
@@ -98,8 +95,8 @@ if __name__ == '__main__':
     # Criar e executar a aplicação
     app = create_app()
     print("🚀 Iniciando servidor Flask...")
-    print("📍 Acesse: http://localhost:5000")
-    print("📍 API: http://localhost:5000/api")
+    print("📍 Acesse: http://localhost:8080")
+    print("📍 API: http://localhost:8080/api")
     print("")
     print("⏹️  Para parar: Ctrl+C")
     print("")
