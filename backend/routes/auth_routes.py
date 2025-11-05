@@ -19,6 +19,7 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     data = request.get_json()
     
+    # Validar campos obrigatórios
     if not all(k in data for k in ['name', 'email', 'password']):
         return jsonify({'error': 'Nome, email e senha são obrigatórios'}), 400
     
@@ -28,31 +29,41 @@ def register():
     if len(data['password']) < 6:
         return jsonify({'error': 'Senha deve ter no mínimo 6 caracteres'}), 400
     
+    # Validar tipo de usuário
+    user_type = data.get('user_type', 'student').lower()
+    if user_type not in ['student', 'teacher']:
+        return jsonify({'error': 'Tipo de usuário deve ser "student" ou "teacher"'}), 400
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
         password_hash = generate_password_hash(data['password'])
-        print("cheguei aqui")
+        print(f"📝 Registrando novo usuário: {data['name']} ({user_type})")
        
         cursor.execute(
             'INSERT INTO users (name, email, password_hash, photo_url, bio, user_type) VALUES (?, ?, ?, ?, ?, ?)',
-            (data['name'].strip(), data['email'].lower().strip(), password_hash, data.get('photo_url'), data.get('bio'), "student" )
+            (data['name'].strip(), data['email'].lower().strip(), password_hash, data.get('photo_url'), data.get('bio'), user_type)
         )
-        print("deu certo o cursor")
+        print("✅ Usuário inserido com sucesso")
         user_id = cursor.lastrowid
         conn.commit()
         
         token = create_access_token(identity=user_id, expires_delta=timedelta(days=7))
         
-        return jsonify({'message': 'Usuário criado com sucesso', 'token': token, 'user_id': user_id}), 201
+        return jsonify({
+            'message': 'Usuário criado com sucesso', 
+            'token': token, 
+            'user_id': user_id,
+            'user_type': user_type
+        }), 201
         
     except sqlite3.IntegrityError:
         conn.rollback()
         return jsonify({'error': 'Email já cadastrado'}), 409
     except Exception as e:
         conn.rollback()
-        print(f"Erro: {e}")
+        print(f"❌ Erro: {e}")
         return jsonify({'error': 'Erro ao criar conta'}), 500
     finally:
         conn.close()
@@ -73,7 +84,12 @@ def login():
         
         if user and check_password_hash(user['password_hash'], data['password']):
             token = create_access_token(identity=user['id'], expires_delta=timedelta(days=7))
-            return jsonify({'token': token, 'user_id': user['id'], 'name': user['name'], 'user_type': user['user_type']}), 200
+            return jsonify({
+                'token': token, 
+                'user_id': user['id'], 
+                'name': user['name'], 
+                'user_type': user['user_type']
+            }), 200
         else:
             return jsonify({'error': 'Email ou senha incorretos'}), 401
     except Exception as e:

@@ -31,7 +31,7 @@ def create_app():
     
     # Habilitar CORS para permitir requisições do frontend
     CORS(app, 
-        origins=["http://localhost:8080", "http://127.0.0.1:8080",
+        origins=["http://localhost:5000", "http://127.0.0.1:5000",
                  "http://localhost:5000", "http://127.0.0.1:5000"],
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
@@ -95,14 +95,14 @@ if __name__ == '__main__':
     # Criar e executar a aplicação
     app = create_app()
     print("🚀 Iniciando servidor Flask...")
-    print("📍 Acesse: http://localhost:8080")
-    print("📍 API: http://localhost:8080/api")
+    print("📍 Acesse: http://localhost:5000")
+    print("📍 API: http://localhost:5000/api")
     print("")
     print("⏹️  Para parar: Ctrl+C")
     print("")
     
     app.run(
         host='0.0.0.0',
-        port=8080,
+        port=5000,
         debug=True
     )

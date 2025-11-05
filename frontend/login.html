@@ -103,7 +103,8 @@
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e0e0e0;
@@ -114,7 +115,8 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -123,6 +125,60 @@
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
+        }
+
+        .user-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .type-option {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .type-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .type-option input[type="radio"] {
+            display: none;
+        }
+
+        .type-option input[type="radio"]:checked + .type-label {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .type-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+        }
+
+        .type-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .type-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .type-description {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
         }
 
         .btn {
@@ -304,6 +360,26 @@
                     <label>Sobre você (opcional)</label>
                     <textarea id="register-bio" placeholder="Conte um pouco sobre você e seus interesses..." rows="3"></textarea>
                 </div>
+
+                <!-- User Type Selection -->
+                <div class="form-group">
+                    <label>Qual é seu perfil?</label>
+                    <div class="user-type-selector">
+                        <div class="type-option" id="student-option" onclick="selectUserType('student', event)">
+                            <input type="radio" name="user_type" value="student" id="user-student">
+                            <div class="type-icon">📚</div>
+                            <label class="type-label" for="user-student">Aluno</label>
+                            <div class="type-description">Quero aprender</div>
+                        </div>
+                        <div class="type-option" id="teacher-option" onclick="selectUserType('teacher', event)">
+                            <input type="radio" name="user_type" value="teacher" id="user-teacher">
+                            <div class="type-icon">👨‍🏫</div>
+                            <label class="type-label" for="user-teacher">Professor</label>
+                            <div class="type-description">Quero ensinar</div>
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">
                     <span class="btn-text">Criar Conta</span>
                 </button>
@@ -315,6 +391,7 @@
 
     <script>
         const API_URL = 'http://localhost:8080/api/auth';
+        let selectedUserType = null;
 
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -331,6 +408,20 @@
             hideError('login-error');
             hideError('register-error');
             document.getElementById('register-success').classList.remove('show');
+        }
+
+        function selectUserType(type, event) {
+            selectedUserType = type;
+            
+            // Remover seleção anterior
+            document.getElementById('student-option').classList.remove('selected');
+            document.getElementById('teacher-option').classList.remove('selected');
+            
+            // Adicionar seleção no clicado
+            document.getElementById(`${type}-option`).classList.add('selected');
+            
+            // Marcar o radio button
+            document.querySelector(`input[value="${type}"]`).checked = true;
         }
 
         function togglePassword(inputId) {
@@ -386,12 +477,7 @@
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('userType', data.user_type);
                     
-                    // Se user_type for 'student' (padrão), redirecionar para completar perfil
-                    if (data.user_type === 'student') {
-                        window.location.href = '/profile_edit.html';
-                    } else {
-                        window.location.href = '/discover.html';
-                    }
+                    window.location.href = '/discover.html';
                 } else {
                     showError('login-error', data.error || 'Erro ao fazer login');
                 }
@@ -411,7 +497,14 @@
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const bio = document.getElementById('register-bio').value;
+            const userType = selectedUserType;
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Validar seleção de tipo
+            if (!userType) {
+                showError('register-error', 'Por favor, escolha se você é aluno ou professor');
+                return;
+            }
             
             hideError('register-error');
             document.getElementById('register-success').classList.remove('show');
@@ -421,7 +514,13 @@
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, bio })
+                    body: JSON.stringify({ 
+                        name, 
+                        email, 
+                        password, 
+                        bio,
+                        user_type: userType
+                    })
                 });
                 
                 const data = await response.json();
@@ -430,9 +529,10 @@
                     localStorage.setItem('authToken', data.token);
                     localStorage.setItem('userId', data.user_id);
                     localStorage.setItem('userName', name);
+                    localStorage.setItem('userType', userType);
                     
                     const successDiv = document.getElementById('register-success');
-                    successDiv.textContent = 'Conta criada! Complete seu perfil...';
+                    successDiv.textContent = 'Conta criada! Redirecionando...';
                     successDiv.classList.add('show');
                     
                     setTimeout(() => {
@@ -452,15 +552,9 @@
         // Verificar se já está logado
         window.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
-            const userType = localStorage.getItem('userType');
             
             if (token) {
-                // Se já tem token mas user_type é 'student', precisa completar perfil
-                if (userType === 'student') {
-                    window.location.href = '/profile_edit.html';
-                } else {
-                    window.location.href = '/discover.html';
-                }
+                window.location.href = '/discover.html';
             }
         });
     </script>
