@@ -257,7 +257,14 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:8080/api/profile';
+        // Detectar URL da API automaticamente (localhost ou Codespace)
+        const API_BASE = window.location.origin.includes('github.dev') 
+            ? window.location.origin 
+            : 'http://localhost:5000';
+        const API_URL = `${API_BASE}/api/profile`;
+        
+        console.log('🌐 API URL detectada:', API_URL);
+        
         let selectedUserType = null;
         let interests = [];
         let skills = [];
@@ -375,8 +382,8 @@
             const token = localStorage.getItem('authToken');
 
             try {
-                console.log('Enviando para:', `${API_URL}/complete`);
-                console.log('Dados:', { user_type: userType, ...data });
+                console.log('📤 Enviando para:', `${API_URL}/complete`);
+                console.log('📤 Dados:', { user_type: userType, ...data });
 
                 const response = await fetch(`${API_URL}/complete`, {
                     method: 'POST',
@@ -391,7 +398,7 @@
                 });
 
                 const result = await response.json();
-                console.log('Resposta:', result);
+                console.log('📥 Resposta:', result);
 
                 if (response.ok) {
                     localStorage.setItem('userType', userType);
@@ -401,7 +408,7 @@
                     document.getElementById(`${userType}-error`).classList.add('show');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('❌ Erro:', error);
                 document.getElementById(`${userType}-error`).textContent = 'Erro ao salvar perfil';
                 document.getElementById(`${userType}-error`).classList.add('show');
             }

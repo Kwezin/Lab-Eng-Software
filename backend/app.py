@@ -29,14 +29,32 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = 'sua-chave-jwt-secreta-aqui-mude-em-producao'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
     
+    # Detectar o domínio (localhost ou Codespace)
+    allowed_origins = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+    
+    # Se em Codespace, adicionar o domínio dinâmico
+    codespace_domain = os.environ.get('CODESPACE_NAME')
+    if codespace_domain:
+        codespace_url = f"https://{codespace_domain}-5000.preview.app.github.dev"
+        allowed_origins.append(codespace_url)
+        print(f"🌐 Codespace detectado: {codespace_url}")
+    
     # Habilitar CORS para permitir requisições do frontend
     CORS(app, 
-        origins=["http://localhost:5000", "http://127.0.0.1:5000",
-                 "http://localhost:5000", "http://127.0.0.1:5000"],
+        origins=allowed_origins,
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
         supports_credentials=True
     )
+    
+    print(f"✅ CORS Habilitado para: {allowed_origins}")
     
     # Inicializar JWT
     jwt = JWTManager(app)
@@ -45,6 +63,7 @@ def create_app():
     @app.before_request
     def log_request():
         print(f"📨 {request.method} {request.path}")
+        print(f"   Origin: {request.origin}")
         if request.method in ['POST', 'PUT']:
             print(f"   Body: {request.get_json()}")
     
@@ -97,6 +116,7 @@ if __name__ == '__main__':
     print("🚀 Iniciando servidor Flask...")
     print("📍 Acesse: http://localhost:5000")
     print("📍 API: http://localhost:5000/api")
+    print("📍 (Em Codespace, use a URL do seu preview)")
     print("")
     print("⏹️  Para parar: Ctrl+C")
     print("")

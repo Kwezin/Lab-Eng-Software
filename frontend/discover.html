@@ -339,7 +339,14 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        // Detectar URL da API automaticamente (localhost ou Codespace)
+        const API_BASE = window.location.origin.includes('github.dev') 
+            ? window.location.origin 
+            : 'http://localhost:5000';
+        const API_URL = `${API_BASE}/api`;
+        
+        console.log('🌐 API URL detectada:', API_URL);
+        
         let currentProfiles = [];
         let currentIndex = 0;
         let isDragging = false;
@@ -350,6 +357,9 @@
             const token = localStorage.getItem('authToken');
             const userId = localStorage.getItem('userId');
 
+            console.log('🔍 Token:', token ? 'Existe' : 'Não existe');
+            console.log('🔍 User ID:', userId);
+
             try {
                 const response = await fetch(`${API_URL}/discover/profiles`, {
                     headers: {
@@ -357,9 +367,13 @@
                     }
                 });
 
+                console.log('📊 Response Status:', response.status);
+                console.log('📊 Response OK:', response.ok);
+
                 if (response.ok) {
                     const data = await response.json();
                     currentProfiles = data.profiles;
+                    console.log('✅ Perfis carregados:', currentProfiles.length);
                     document.getElementById('loading').style.display = 'none';
 
                     if (currentProfiles.length > 0) {
@@ -369,12 +383,13 @@
                         document.getElementById('no-more-cards').classList.add('show');
                     }
                 } else {
-                    console.error('Erro ao carregar perfis');
-                    document.getElementById('loading').textContent = 'Erro ao carregar perfis';
+                    const errorData = await response.json();
+                    console.error('❌ Erro:', errorData);
+                    document.getElementById('loading').textContent = `Erro: ${errorData.error || 'Erro ao carregar perfis'}`;
                 }
             } catch (error) {
-                console.error('Erro:', error);
-                document.getElementById('loading').textContent = 'Erro de conexão';
+                console.error('❌ Erro de conexão:', error);
+                document.getElementById('loading').textContent = `❌ Erro de conexão: ${error.message}`;
             }
         }
 
@@ -390,7 +405,6 @@
             document.getElementById('card-container').appendChild(card);
             currentCard = card;
 
-            // Adicionar eventos de mouse/touch
             card.addEventListener('mousedown', handleDragStart);
             card.addEventListener('touchstart', handleDragStart);
         }
@@ -520,7 +534,7 @@
             const profile = currentProfiles[currentIndex];
 
             try {
-                const response = await fetch(`${API_URL}/swipe`, {
+                const response = await fetch(`${API_URL}/discover/swipe`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -562,11 +576,11 @@
             document.getElementById('match-popup').classList.remove('show');
         }
 
-        // Verificar autenticação e carregar perfis
         window.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('authToken')) {
                 window.location.href = 'login.html';
             } else {
+                console.log('✅ Autenticado, carregando perfis...');
                 loadProfiles();
             }
         });

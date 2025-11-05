@@ -103,8 +103,7 @@
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group textarea {
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e0e0e0;
@@ -115,8 +114,7 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -147,15 +145,6 @@
         .type-option:hover {
             border-color: #667eea;
             background: #f8f9ff;
-        }
-
-        .type-option input[type="radio"] {
-            display: none;
-        }
-
-        .type-option input[type="radio"]:checked + .type-label {
-            color: #667eea;
-            font-weight: 700;
         }
 
         .type-option.selected {
@@ -365,16 +354,14 @@
                 <div class="form-group">
                     <label>Qual é seu perfil?</label>
                     <div class="user-type-selector">
-                        <div class="type-option" id="student-option" onclick="selectUserType('student', event)">
-                            <input type="radio" name="user_type" value="student" id="user-student">
+                        <div class="type-option" id="student-option" onclick="selectUserType('student')">
                             <div class="type-icon">📚</div>
-                            <label class="type-label" for="user-student">Aluno</label>
+                            <label class="type-label">Aluno</label>
                             <div class="type-description">Quero aprender</div>
                         </div>
-                        <div class="type-option" id="teacher-option" onclick="selectUserType('teacher', event)">
-                            <input type="radio" name="user_type" value="teacher" id="user-teacher">
+                        <div class="type-option" id="teacher-option" onclick="selectUserType('teacher')">
                             <div class="type-icon">👨‍🏫</div>
-                            <label class="type-label" for="user-teacher">Professor</label>
+                            <label class="type-label">Professor</label>
                             <div class="type-description">Quero ensinar</div>
                         </div>
                     </div>
@@ -390,7 +377,14 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:8080/api/auth';
+        // Detectar URL da API automaticamente (localhost ou Codespace)
+        const API_BASE = window.location.origin.includes('github.dev') 
+            ? window.location.origin 
+            : 'http://localhost:5000';
+        const API_URL = `${API_BASE}/api/auth`;
+        
+        console.log('🌐 API URL detectada:', API_URL);
+        
         let selectedUserType = null;
 
         function showTab(tabName) {
@@ -410,7 +404,7 @@
             document.getElementById('register-success').classList.remove('show');
         }
 
-        function selectUserType(type, event) {
+        function selectUserType(type) {
             selectedUserType = type;
             
             // Remover seleção anterior
@@ -419,9 +413,6 @@
             
             // Adicionar seleção no clicado
             document.getElementById(`${type}-option`).classList.add('selected');
-            
-            // Marcar o radio button
-            document.querySelector(`input[value="${type}"]`).checked = true;
         }
 
         function togglePassword(inputId) {
@@ -536,7 +527,7 @@
                     successDiv.classList.add('show');
                     
                     setTimeout(() => {
-                        window.location.href = '/profile_edit.html';
+                        window.location.href = '/discover.html';
                     }, 1500);
                 } else {
                     showError('register-error', data.error || 'Erro ao criar conta');
