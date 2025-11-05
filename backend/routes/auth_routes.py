@@ -33,12 +33,13 @@ def register():
     
     try:
         password_hash = generate_password_hash(data['password'])
-        
+        print("cheguei aqui")
+       
         cursor.execute(
             'INSERT INTO users (name, email, password_hash, photo_url, bio, user_type) VALUES (?, ?, ?, ?, ?, ?)',
-            (data['name'].strip(), data['email'].lower().strip(), password_hash, data.get('photo_url'), data.get('bio'), None)
+            (data['name'].strip(), data['email'].lower().strip(), password_hash, data.get('photo_url'), data.get('bio'), "student" )
         )
-        
+        print("deu certo o cursor")
         user_id = cursor.lastrowid
         conn.commit()
         

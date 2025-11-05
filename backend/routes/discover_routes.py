@@ -30,7 +30,7 @@ def get_profiles():
     current_user_id = get_jwt_identity()
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+    print(f'corrent_user_id {current_user_id}')
     try:
         # Buscar tipo do usuário atual
         cursor.execute('SELECT user_type FROM users WHERE id = ?', (current_user_id,))

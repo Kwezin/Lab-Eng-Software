@@ -38,7 +38,7 @@ def complete_profile():
     """
     current_user_id = get_jwt_identity()
     data = request.get_json()
-    
+    print(data)
     if 'user_type' not in data:
         return jsonify({'error': 'Tipo de usuário é obrigatório'}), 400
     
