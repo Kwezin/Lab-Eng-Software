@@ -96,7 +96,7 @@ def create_app():
     @app.route('/')
     def index():
         """Redireciona para a página de login"""
-        return send_from_directory(app.static_folder, 'login.html')
+        return send_from_directory(app.static_folder, 'menu.html')
     
     @app.route('/<path:filename>')
     def serve_static(filename):

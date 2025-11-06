@@ -468,7 +468,8 @@
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('userType', data.user_type);
                     
-                    window.location.href = '/discover.html';
+                    // CORRIGIDO: Redireciona para menu.html
+                    window.location.href = 'menu.html';
                 } else {
                     showError('login-error', data.error || 'Erro ao fazer login');
                 }
@@ -527,7 +528,8 @@
                     successDiv.classList.add('show');
                     
                     setTimeout(() => {
-                        window.location.href = '/discover.html';
+                        // CORRIGIDO: Redireciona para menu.html
+                        window.location.href = 'menu.html';
                     }, 1500);
                 } else {
                     showError('register-error', data.error || 'Erro ao criar conta');
@@ -545,7 +547,8 @@
             const token = localStorage.getItem('authToken');
             
             if (token) {
-                window.location.href = '/discover.html';
+                // CORRIGIDO: Redireciona para menu.html
+                window.location.href = 'menu.html';
             }
         });
     </script>
