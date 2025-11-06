@@ -43,24 +43,31 @@
             font-size: 28px;
         }
 
-        .nav-btns {
+        .nav-menu {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
 
         .nav-btn {
+            padding: 10px 20px;
             background: #f0f0f0;
             border: none;
-            padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            font-weight: 600;
             text-decoration: none;
             color: #333;
+            transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .nav-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
             background: #667eea;
             color: white;
         }
@@ -76,7 +83,7 @@
         .profile-card {
             width: 100%;
             max-width: 450px;
-            height: 600px;
+            height: 520px;
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
@@ -103,12 +110,12 @@
 
         .card-image {
             width: 100%;
-            height: 350px;
+            height: 280px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 120px;
+            font-size: 100px;
             position: relative;
         }
 
@@ -141,15 +148,17 @@
         }
 
         .card-content {
-            padding: 25px;
+            padding: 20px;
+            max-height: 240px;
+            overflow-y: auto;
         }
 
         .card-header {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .card-header h2 {
-            font-size: 28px;
+            font-size: 24px;
             margin-bottom: 5px;
             color: #333;
         }
@@ -175,18 +184,19 @@
 
         .card-bio {
             color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            font-size: 14px;
         }
 
         .skills-section, .interests-section {
-            margin-top: 15px;
+            margin-top: 12px;
         }
 
         .skills-section h3, .interests-section h3 {
-            font-size: 16px;
+            font-size: 14px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .tags {
@@ -197,9 +207,9 @@
 
         .tag {
             background: #f0f0f0;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 15px;
-            font-size: 14px;
+            font-size: 13px;
             color: #555;
         }
 
@@ -307,13 +317,34 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="header">
             <h1>🎓 TINTIN</h1>
-        </div>
+            <div class="nav-menu">
+                <a href="menu.html" class="nav-btn">🏠 Menu</a>
+                <a href="discover.html" class="nav-btn active">🔍 Descobrir</a>
+                <a href="matches.html" class="nav-btn">💬 Matches</a>
+                <a href="profile.html" class="nav-btn">👤 Perfil</a>
+                <button class="nav-btn" onclick="logout()">🚪 Sair</button>
+            </div>
+    </div>
+    <div class="container">
+        
 
         <div class="card-container" id="card-container">
             <div class="loading" id="loading">Carregando perfis...</div>
@@ -339,7 +370,6 @@
     </div>
 
     <script>
-        // Detectar URL da API automaticamente (localhost ou Codespace)
         const API_BASE = window.location.origin.includes('github.dev') 
             ? window.location.origin 
             : 'http://localhost:5000';
@@ -352,6 +382,13 @@
         let isDragging = false;
         let startX = 0;
         let currentCard = null;
+
+        function logout() {
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
 
         async function loadProfiles() {
             const token = localStorage.getItem('authToken');
