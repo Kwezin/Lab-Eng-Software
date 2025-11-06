@@ -360,6 +360,11 @@
                     <span class="menu-icon">👤</span>
                     <span class="menu-text">Meu Perfil</span>
                 </a>
+
+                <a href="profile.html" class="menu-item">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Meu Perfil</span>
+                </a>
             </div>
 
             <div class="sidebar-footer">
@@ -495,6 +500,11 @@
                 if (unreadResponse.ok) {
                     const unreadData = await unreadResponse.json();
                     document.getElementById('unread-messages').textContent = unreadData.unread_count || 0;
+
+                    if (unreadData.unread_count > 0) {
+                        document.getElementById('unread-badge').textContent = unreadData.unread_count;
+                        document.getElementById('unread-badge').style.display = 'block';
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao carregar estatísticas:', error);

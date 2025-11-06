@@ -328,7 +328,7 @@
                         <div class="match-date">
                             Match em ${formatDate(match.matched_at)}
                         </div>
-                        <button class="chat-btn" onclick="event.stopPropagation(); openChat(${match.match_id}, '${match.other_user_name}')">
+                        <button class="chat-btn" onclick="event.stopPropagation(); window.location.href='chat.html?match_id=${match.match_id}'">
                             💬 Iniciar Conversa
                         </button>
                     </div>

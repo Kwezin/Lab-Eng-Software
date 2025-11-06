@@ -1,10 +1,11 @@
 """
-Rotas de Chat - Mensagens entre matches
+Rotas de Chat - Mensagens entre matches (MELHORADO)
 Salvar como: backend/routes/chat_routes.py
 """
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from datetime import datetime
 import sys
 import os
 
@@ -202,7 +203,7 @@ def get_conversations():
             JOIN users u2 ON m.user2_id = u2.id
             WHERE m.is_active = 1 
             AND (m.user1_id = ? OR m.user2_id = ?)
-            ORDER BY last_message_time DESC
+            ORDER BY last_message_time DESC NULLS LAST
         '''
         
         cursor.execute(query, (
@@ -253,6 +254,38 @@ def get_unread_count():
     except Exception as e:
         print(f"Erro ao buscar contagem de não lidas: {e}")
         return jsonify({'error': 'Erro ao buscar mensagens não lidas'}), 500
+        
+    finally:
+        conn.close()
+
+
+@chat_bp.route('/mark-read/<int:match_id>', methods=['POST'])
+@jwt_required()
+def mark_messages_read(match_id):
+    """
+    Marca todas as mensagens de um match como lidas
+    """
+    current_user_id = get_jwt_identity()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            '''
+            UPDATE messages 
+            SET is_read = 1 
+            WHERE match_id = ? AND sender_id != ? AND is_read = 0
+            ''',
+            (match_id, current_user_id)
+        )
+        conn.commit()
+        
+        return jsonify({'message': 'Mensagens marcadas como lidas'}), 200
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Erro ao marcar mensagens: {e}")
+        return jsonify({'error': 'Erro ao marcar mensagens'}), 500
         
     finally:
         conn.close()
