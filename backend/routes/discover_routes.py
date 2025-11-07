@@ -27,7 +27,7 @@ def get_profiles():
     - Ainda não receberam swipe do usuário atual
     - São do tipo oposto (teacher <-> student)
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     print(f'corrent_user_id {current_user_id}')
@@ -44,7 +44,7 @@ def get_profiles():
         # Tipo oposto para matching
         opposite_type = 'teacher' if current_user_type == 'student' else 'student'
         
-        # Buscar perfis disponíveis
+        # Buscar perfis disponíveis (limite maior para podermos ordenar por relevância)
         query = '''
             SELECT u.id, u.name, u.bio, u.user_type, u.photo_url
             FROM users u
@@ -54,27 +54,51 @@ def get_profiles():
                 SELECT to_user_id FROM swipes WHERE from_user_id = ?
             )
             ORDER BY RANDOM()
-            LIMIT 20
+            LIMIT 50
         '''
-        
+
         cursor.execute(query, (current_user_id, opposite_type, current_user_id))
         profiles = [dict(row) for row in cursor.fetchall()]
-        
-        # Adicionar habilidades/interesses de cada perfil
+
+        # Se o usuário atual for student, carregar seus interesses para usar como parâmetro de match
+        current_user_interests = []
+        if current_user_type == 'student':
+            cursor.execute('SELECT interest_name FROM student_interests WHERE user_id = ?', (current_user_id,))
+            current_user_interests = [r['interest_name'].lower() for r in cursor.fetchall()]
+
+        # Adicionar habilidades/interesses de cada perfil e calcular score simples por interseção de tags
         for profile in profiles:
+            profile['match_score'] = 0
             if profile['user_type'] == 'teacher':
                 cursor.execute(
-                    'SELECT skill_name, skill_description FROM teacher_skills WHERE user_id = ?',
+                    'SELECT skill_name, skill_description, skill_level, requires_evaluation FROM teacher_skills WHERE user_id = ?',
                     (profile['id'],)
                 )
-                profile['skills'] = [dict(s) for s in cursor.fetchall()]
+                skills = [dict(s) for s in cursor.fetchall()]
+                profile['skills'] = skills
+
+                # calcular score simples quando o student tem interesse coincidente com skill_name
+                if current_user_interests:
+                    for s in skills:
+                        if s.get('skill_name') and s['skill_name'].lower() in current_user_interests:
+                            profile['match_score'] += 1
             else:
                 cursor.execute(
-                    'SELECT interest_name, difficulty_level, description FROM student_interests WHERE user_id = ?',
+                    'SELECT interest_name, difficulty_level, description, desired_level, requires_evaluation FROM student_interests WHERE user_id = ?',
                     (profile['id'],)
                 )
                 profile['interests'] = [dict(i) for i in cursor.fetchall()]
-        
+
+                # se current user for teacher, podemos também providenciar score baseando-se em interesses do aluno
+                if current_user_type == 'teacher' and current_user_interests:
+                    # para caso inverso (teacher procurando student), checar alinhamento
+                    for i in profile['interests']:
+                        if i.get('interest_name') and i['interest_name'].lower() in current_user_interests:
+                            profile['match_score'] += 1
+
+        # Ordenar por match_score decrescente para apresentar candidatos mais relevantes primeiro
+        profiles.sort(key=lambda p: p.get('match_score', 0), reverse=True)
+
         return jsonify({'profiles': profiles}), 200
         
     except Exception as e:
@@ -103,7 +127,7 @@ def swipe():
         "match": true/false
     }
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     data = request.get_json()
     
     if not all(k in data for k in ['to_user_id', 'swipe_type']):
@@ -174,13 +198,14 @@ def swipe():
 @jwt_required()
 def get_matches():
     """
-    Retorna lista de matches do usuário
+    Retorna lista de matches do usuário com informações detalhadas
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
+        # Buscar informações básicas dos matches
         query = '''
             SELECT 
                 m.id as match_id,
@@ -200,7 +225,15 @@ def get_matches():
                 CASE 
                     WHEN m.user1_id = ? THEN u2.user_type
                     ELSE u1.user_type
-                END as other_user_type
+                END as other_user_type,
+                CASE 
+                    WHEN m.user1_id = ? THEN u2.bio
+                    ELSE u1.bio
+                END as other_user_bio,
+                CASE 
+                    WHEN m.user1_id = ? THEN u2.location
+                    ELSE u1.location
+                END as other_user_location
             FROM matches m
             JOIN users u1 ON m.user1_id = u1.id
             JOIN users u2 ON m.user2_id = u2.id
@@ -211,15 +244,73 @@ def get_matches():
         
         cursor.execute(query, (
             current_user_id, current_user_id, current_user_id,
-            current_user_id, current_user_id, current_user_id
+            current_user_id, current_user_id, current_user_id,
+            current_user_id, current_user_id
         ))
         
         matches = [dict(row) for row in cursor.fetchall()]
         
+        # Para cada match, buscar tags/habilidades e mensagens não lidas
+        for match in matches:
+            other_user_id = match['other_user_id']
+            other_user_type = match['other_user_type']
+            
+            # Buscar tags do outro usuário
+            if other_user_type == 'teacher':
+                cursor.execute('''
+                    SELECT skill_name, skill_level
+                    FROM teacher_skills
+                    WHERE user_id = ?
+                    LIMIT 5
+                ''', (other_user_id,))
+                match['tags'] = [{'name': row['skill_name'], 'level': row['skill_level']} 
+                               for row in cursor.fetchall()]
+            else:
+                cursor.execute('''
+                    SELECT interest_name, desired_level
+                    FROM student_interests
+                    WHERE user_id = ?
+                    LIMIT 5
+                ''', (other_user_id,))
+                match['tags'] = [{'name': row['interest_name'], 'level': row['desired_level']} 
+                               for row in cursor.fetchall()]
+            
+            # Contar mensagens não lidas
+            # O receiver é o usuário atual, então filtramos por mensagens onde ele NÃO é o sender
+            cursor.execute('''
+                SELECT COUNT(*) as unread_count
+                FROM messages
+                WHERE match_id = ? AND sender_id != ? AND is_read = 0
+            ''', (match['match_id'], current_user_id))
+            
+            unread_row = cursor.fetchone()
+            match['unread_count'] = unread_row['unread_count'] if unread_row else 0
+            
+            # Buscar última mensagem
+            cursor.execute('''
+                SELECT message_text, sent_at, sender_id
+                FROM messages
+                WHERE match_id = ?
+                ORDER BY sent_at DESC
+                LIMIT 1
+            ''', (match['match_id'],))
+            
+            last_msg = cursor.fetchone()
+            if last_msg:
+                match['last_message'] = {
+                    'content': last_msg['message_text'],
+                    'sent_at': last_msg['sent_at'],
+                    'is_mine': last_msg['sender_id'] == current_user_id
+                }
+            else:
+                match['last_message'] = None
+        
         return jsonify({'matches': matches}), 200
         
     except Exception as e:
+        import traceback
         print(f"Erro ao buscar matches: {e}")
+        print(traceback.format_exc())
         return jsonify({'error': 'Erro ao buscar matches'}), 500
         
     finally:
@@ -232,7 +323,7 @@ def get_stats():
     """
     Retorna estatísticas do usuário
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     

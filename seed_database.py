@@ -131,18 +131,18 @@ def seed_database():
         for prof in professors:
             password_hash = generate_password_hash(prof['password'])
             cursor.execute(
-                '''INSERT INTO users (name, email, password_hash, bio, user_type) 
-                   VALUES (?, ?, ?, ?, ?)''',
-                (prof['name'], prof['email'], password_hash, prof['bio'], 'teacher')
+                '''INSERT INTO users (name, email, password_hash, bio, user_type, location, languages, credentials) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                (prof['name'], prof['email'], password_hash, prof['bio'], 'teacher', prof.get('location'), prof.get('languages'), prof.get('credentials'))
             )
             prof_id = cursor.lastrowid
             
             # Inserir skills
             for skill in prof['skills']:
                 cursor.execute(
-                    '''INSERT INTO teacher_skills (user_id, skill_name, skill_description) 
-                       VALUES (?, ?, ?)''',
-                    (prof_id, skill['name'], skill['description'])
+                    '''INSERT INTO teacher_skills (user_id, skill_name, skill_description, skill_level, requires_evaluation) 
+                       VALUES (?, ?, ?, ?, ?)''',
+                    (prof_id, skill['name'], skill['description'], skill.get('level'), 1 if skill.get('requires_evaluation') else 0)
                 )
             
             print(f"  ✅ {prof['name']} (ID: {prof_id})")
@@ -152,18 +152,18 @@ def seed_database():
         for student in students:
             password_hash = generate_password_hash(student['password'])
             cursor.execute(
-                '''INSERT INTO users (name, email, password_hash, bio, user_type) 
-                   VALUES (?, ?, ?, ?, ?)''',
-                (student['name'], student['email'], password_hash, student['bio'], 'student')
+                '''INSERT INTO users (name, email, password_hash, bio, user_type, location, languages) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                (student['name'], student['email'], password_hash, student['bio'], 'student', student.get('location'), student.get('languages'))
             )
             student_id = cursor.lastrowid
             
             # Inserir interests
             for interest in student['interests']:
                 cursor.execute(
-                    '''INSERT INTO student_interests (user_id, interest_name, difficulty_level, description) 
-                       VALUES (?, ?, ?, ?)''',
-                    (student_id, interest['name'], interest['difficulty'], interest['description'])
+                    '''INSERT INTO student_interests (user_id, interest_name, difficulty_level, description, desired_level, requires_evaluation) 
+                       VALUES (?, ?, ?, ?, ?, ?)''',
+                    (student_id, interest['name'], interest['difficulty'], interest['description'], interest.get('desired_level'), 1 if interest.get('requires_evaluation') else 0)
                 )
             
             print(f"  ✅ {student['name']} (ID: {student_id})")

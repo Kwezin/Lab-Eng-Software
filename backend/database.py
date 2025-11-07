@@ -30,6 +30,12 @@ def init_database():
             photo_url TEXT,
             bio TEXT,
             user_type TEXT NOT NULL CHECK(user_type IN ('student', 'teacher')),
+            -- Campos adicionais para melhorar informações do usuário
+            location TEXT,
+            languages TEXT,
+            availability TEXT,
+            price_per_hour REAL,
+            credentials TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -42,6 +48,10 @@ def init_database():
             user_id INTEGER NOT NULL,
             skill_name TEXT NOT NULL,
             skill_description TEXT,
+            -- nível/competência da habilidade (opcional)
+            skill_level TEXT,
+            -- se o professor exige alguma avaliação/entrevista para ensinar essa habilidade
+            requires_evaluation BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -55,6 +65,10 @@ def init_database():
             interest_name TEXT NOT NULL,
             difficulty_level TEXT CHECK(difficulty_level IN ('beginner', 'intermediate', 'advanced')),
             description TEXT,
+            -- nível/expectativa do aluno (p.ex. "beginner")
+            desired_level TEXT,
+            -- se o aluno solicita avaliação ou verificação antes de iniciar
+            requires_evaluation BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -126,6 +140,8 @@ def init_database():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_match ON messages(match_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_teacher_skills_user ON teacher_skills(user_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_student_interests_user ON student_interests(user_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_teacher_skills_name ON teacher_skills(skill_name)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_student_interests_name ON student_interests(interest_name)')
     
     conn.commit()
     conn.close()

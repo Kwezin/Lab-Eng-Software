@@ -298,6 +298,135 @@
             font-size: 20px;
             padding: 5px;
         }
+
+        /* Tags Section */
+        .tags-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 12px;
+            border: 2px dashed #667eea;
+        }
+
+        .tags-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tags-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tags-header h3 {
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+        }
+
+        .tags-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tags-input-group input {
+            flex: 1;
+        }
+
+        .tags-input-group button {
+            padding: 14px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tags-input-group button:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 40px;
+        }
+
+        .tag-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tag-item .remove-tag {
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+
+        .tag-item .remove-tag:hover {
+            transform: scale(1.2);
+            color: #c33;
+        }
+
+        .tags-empty {
+            color: #888;
+            font-size: 14px;
+            font-style: italic;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .tag-suggestions {
+            margin-top: 10px;
+        }
+
+        .tag-suggestions-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .suggestions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .suggestion-item {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -367,6 +496,68 @@
                     </div>
                 </div>
 
+                <!-- Tags Section for Students -->
+                <div id="student-tags" class="tags-section">
+                    <div class="tags-header">
+                        <span style="font-size: 24px;">💡</span>
+                        <h3>O que você quer aprender?</h3>
+                    </div>
+                    <div class="tags-input-group">
+                        <input 
+                            type="text" 
+                            id="student-tag-input" 
+                            placeholder="Ex: Python, Inglês, Violão..."
+                            onkeypress="handleTagKeyPress(event, 'student')"
+                        >
+                        <button type="button" onclick="addTag('student')">+ Adicionar</button>
+                    </div>
+                    <div id="student-tags-list" class="tags-list">
+                        <div class="tags-empty">Adicione pelo menos uma área de interesse</div>
+                    </div>
+                    <div class="tag-suggestions">
+                        <div class="tag-suggestions-label">Sugestões populares:</div>
+                        <div class="suggestions-list">
+                            <span class="suggestion-item" onclick="addSuggestion('Python', 'student')">Python</span>
+                            <span class="suggestion-item" onclick="addSuggestion('JavaScript', 'student')">JavaScript</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Inglês', 'student')">Inglês</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Matemática', 'student')">Matemática</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Violão', 'student')">Violão</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Design', 'student')">Design</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags Section for Teachers -->
+                <div id="teacher-tags" class="tags-section">
+                    <div class="tags-header">
+                        <span style="font-size: 24px;">📚</span>
+                        <h3>O que você pode ensinar?</h3>
+                    </div>
+                    <div class="tags-input-group">
+                        <input 
+                            type="text" 
+                            id="teacher-tag-input" 
+                            placeholder="Ex: Python, Matemática, Violão..."
+                            onkeypress="handleTagKeyPress(event, 'teacher')"
+                        >
+                        <button type="button" onclick="addTag('teacher')">+ Adicionar</button>
+                    </div>
+                    <div id="teacher-tags-list" class="tags-list">
+                        <div class="tags-empty">Adicione pelo menos uma habilidade que você ensina</div>
+                    </div>
+                    <div class="tag-suggestions">
+                        <div class="tag-suggestions-label">Sugestões populares:</div>
+                        <div class="suggestions-list">
+                            <span class="suggestion-item" onclick="addSuggestion('Python', 'teacher')">Python</span>
+                            <span class="suggestion-item" onclick="addSuggestion('JavaScript', 'teacher')">JavaScript</span>
+                            <span class="suggestion-item" onclick="addSuggestion('React', 'teacher')">React</span>
+                            <span class="suggestion-item" onclick="addSuggestion('SQL', 'teacher')">SQL</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Inglês', 'teacher')">Inglês</span>
+                            <span class="suggestion-item" onclick="addSuggestion('Matemática', 'teacher')">Matemática</span>
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">
                     <span class="btn-text">Criar Conta</span>
                 </button>
@@ -386,6 +577,8 @@
         console.log('🌐 API URL detectada:', API_URL);
         
         let selectedUserType = null;
+        let studentTags = [];
+        let teacherTags = [];
 
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -413,6 +606,78 @@
             
             // Adicionar seleção no clicado
             document.getElementById(`${type}-option`).classList.add('selected');
+            
+            // Mostrar/ocultar seções de tags
+            document.getElementById('student-tags').classList.remove('show');
+            document.getElementById('teacher-tags').classList.remove('show');
+            
+            if (type === 'student') {
+                document.getElementById('student-tags').classList.add('show');
+            } else {
+                document.getElementById('teacher-tags').classList.add('show');
+            }
+        }
+
+        function handleTagKeyPress(event, userType) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addTag(userType);
+            }
+        }
+
+        function addTag(userType) {
+            const input = document.getElementById(`${userType}-tag-input`);
+            const tagName = input.value.trim();
+            
+            if (!tagName) return;
+            
+            const tags = userType === 'student' ? studentTags : teacherTags;
+            
+            // Verificar se já existe
+            if (tags.some(t => t.toLowerCase() === tagName.toLowerCase())) {
+                showError('register-error', 'Essa tag já foi adicionada!');
+                setTimeout(() => hideError('register-error'), 2000);
+                return;
+            }
+            
+            // Adicionar tag
+            tags.push(tagName);
+            input.value = '';
+            
+            renderTags(userType);
+        }
+
+        function addSuggestion(tagName, userType) {
+            const tags = userType === 'student' ? studentTags : teacherTags;
+            
+            if (tags.some(t => t.toLowerCase() === tagName.toLowerCase())) {
+                return; // Já existe
+            }
+            
+            tags.push(tagName);
+            renderTags(userType);
+        }
+
+        function removeTag(index, userType) {
+            const tags = userType === 'student' ? studentTags : teacherTags;
+            tags.splice(index, 1);
+            renderTags(userType);
+        }
+
+        function renderTags(userType) {
+            const tags = userType === 'student' ? studentTags : teacherTags;
+            const listElement = document.getElementById(`${userType}-tags-list`);
+            
+            if (tags.length === 0) {
+                listElement.innerHTML = `<div class="tags-empty">Adicione pelo menos uma ${userType === 'student' ? 'área de interesse' : 'habilidade que você ensina'}</div>`;
+            } else {
+                listElement.innerHTML = tags.map((tag, index) => `
+                    <div class="tag-item">
+                        <span>${tag}</span>
+                        <span class="remove-tag" onclick="removeTag(${index}, '${userType}')">×</span>
+                    </div>
+                `).join('');
+            }
         }
 
         function togglePassword(inputId) {
@@ -498,21 +763,48 @@
                 return;
             }
             
+            // Validar tags
+            const tags = userType === 'student' ? studentTags : teacherTags;
+            if (tags.length === 0) {
+                showError('register-error', `Por favor, adicione pelo menos uma ${userType === 'student' ? 'área de interesse' : 'habilidade'}`);
+                return;
+            }
+            
             hideError('register-error');
             document.getElementById('register-success').classList.remove('show');
             setButtonLoading(submitBtn, true);
+            
+            // Preparar dados conforme tipo de usuário
+            const requestData = { 
+                name, 
+                email, 
+                password, 
+                bio,
+                user_type: userType
+            };
+            
+            if (userType === 'teacher') {
+                requestData.skills = tags.map(tag => ({
+                    name: tag,
+                    description: '',
+                    level: 'intermediate',
+                    requires_evaluation: false
+                }));
+            } else {
+                requestData.interests = tags.map(tag => ({
+                    name: tag,
+                    difficulty: 'beginner',
+                    description: '',
+                    desired_level: 'intermediate',
+                    requires_evaluation: false
+                }));
+            }
             
             try {
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name, 
-                        email, 
-                        password, 
-                        bio,
-                        user_type: userType
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 const data = await response.json();

@@ -29,7 +29,7 @@ def send_message():
         "message_text": "Olá! Como vai?"
     }
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     data = request.get_json()
     
     if not all(k in data for k in ['match_id', 'message_text']):
@@ -88,7 +88,7 @@ def get_messages(match_id):
     """
     Retorna todas as mensagens de um chat
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -153,7 +153,7 @@ def get_conversations():
     """
     Retorna lista de conversas com a última mensagem de cada
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -229,7 +229,7 @@ def get_unread_count():
     """
     Retorna o total de mensagens não lidas
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -265,7 +265,7 @@ def mark_messages_read(match_id):
     """
     Marca todas as mensagens de um match como lidas
     """
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     conn = get_db_connection()
     cursor = conn.cursor()
     
