@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  tintin-backend:
+    build: .
+    container_name: tintin-app
+    ports:
+      - "80:5000"  # Mapeia porta 80 (HTTP) para 5000 (Flask)
+    volumes:
+      - ./data:/app/data  # Persiste o banco de dados SQLite
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  data:
+    driver: local

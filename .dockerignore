@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+tintin.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+server.log
+
+# Git
+.git/
+.gitignore
+
+# Tests
+test_*.py
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+docker-compose.override.yml
+
+# Outros
+.env.local
+node_modules/
