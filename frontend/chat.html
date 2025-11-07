@@ -487,6 +487,198 @@
                 opacity: 1;
             }
         }
+
+        /* Modal de Avaliação */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 18px;
+            padding: 28px 26px 24px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.15);
+            animation: messageIn 0.25s ease;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .close-modal:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .rating-title {
+            font-size: 22px;
+            color: #1f2937;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .rating-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+
+        .rating-star {
+            background: none;
+            border: none;
+            font-size: 34px;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .rating-star:hover,
+        .rating-star:focus {
+            transform: translateY(-3px);
+            color: #facc15;
+        }
+
+        .rating-star.selected {
+            color: #facc15;
+        }
+
+        .rating-comment {
+            width: 100%;
+            min-height: 90px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 14px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+            color: #1f2937;
+        }
+
+        .rating-comment:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.18);
+        }
+
+        .rating-submit {
+            margin-top: 18px;
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .rating-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35);
+        }
+
+        .rating-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .rating-feedback {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 13px;
+            min-height: 18px;
+            color: #6b7280;
+        }
+
+        .rating-feedback.success {
+            color: #16a34a;
+        }
+
+        .rating-feedback.error {
+            color: #ef4444;
+        }
+
+        .received-rating {
+            margin-top: 18px;
+            border-radius: 12px;
+            padding: 16px 18px;
+            background: #f8fafc;
+        }
+
+        .received-rating h3 {
+            font-size: 15px;
+            color: #334155;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .received-stars {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .received-stars span {
+            color: #d1d5db;
+        }
+
+        .received-stars .filled {
+            color: #facc15;
+        }
+
+        .received-comment {
+            font-size: 14px;
+            color: #475569;
+            text-align: center;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .received-meta,
+        .rating-meta {
+            font-size: 12px;
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -528,6 +720,7 @@
                         <div class="chat-user-type" id="chat-user-type">Tipo</div>
                     </div>
                     <div class="chat-actions">
+                        <button class="chat-action-btn" onclick="openRatingModal()" title="Avaliar parceiro">⭐</button>
                         <button class="chat-action-btn" onclick="viewProfile()" title="Ver perfil">👤</button>
                     </div>
                 </div>
@@ -553,22 +746,275 @@
         </div>
     </div>
 
+    <div id="rating-modal" class="modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-labelledby="rating-title">
+            <button class="close-modal" type="button" aria-label="Fechar" onclick="closeRatingModal()">×</button>
+            <h2 id="rating-title" class="rating-title">Avaliar parceiro</h2>
+            <p class="rating-subtitle" id="rating-other-name"></p>
+
+            <div class="rating-stars" id="rating-stars">
+                <button type="button" class="rating-star" data-value="1" aria-label="1 estrela" title="1 estrela">★</button>
+                <button type="button" class="rating-star" data-value="2" aria-label="2 estrelas" title="2 estrelas">★</button>
+                <button type="button" class="rating-star" data-value="3" aria-label="3 estrelas" title="3 estrelas">★</button>
+                <button type="button" class="rating-star" data-value="4" aria-label="4 estrelas" title="4 estrelas">★</button>
+                <button type="button" class="rating-star" data-value="5" aria-label="5 estrelas" title="5 estrelas">★</button>
+            </div>
+
+            <textarea id="rating-comment" class="rating-comment" placeholder="Deixe um comentário (opcional)"></textarea>
+
+            <button id="rating-submit-btn" type="button" class="rating-submit" onclick="submitRating()">Salvar avaliação</button>
+
+            <div id="rating-feedback" class="rating-feedback"></div>
+
+            <div id="received-rating"></div>
+        </div>
+    </div>
+
     <script>
-        const API_BASE = window.location.origin.includes('github.dev') 
-            ? window.location.origin 
-            : 'http://localhost:5000';
+        // Ajusta automaticamente a URL base para Codespaces ou localhost
+        const origin = window.location.origin;
+        const API_BASE = origin && origin !== 'null' ? origin : 'http://localhost:5000';
         const API_URL = `${API_BASE}/api`;
 
         let currentMatchId = null;
         let currentUserId = null;
-        let currentUserName = null;
         let conversations = [];
         let messagesRefreshInterval = null;
+    let ratingModal = null;
+    let ratingStarsButtons = [];
+    let selectedRating = 0;
+    let ratingCanRate = true;
+    let ratingSubmitting = false;
+    let ratingOtherUserName = '';
+    let pendingRatingOpen = false;
+    let pendingRatingMatchId = null;
+
+        function normalizeTimestamp(value) {
+            let result = String(value).trim();
+            if (!result.includes('T')) {
+                result = result.replace(' ', 'T');
+            }
+            if (!/([+-]\d{2}:?\d{2}|Z)$/i.test(result)) {
+                result = `${result}Z`;
+            }
+            return result;
+        }
+
+        function parseTimestamp(value) {
+            if (!value) return null;
+            try {
+                const normalized = normalizeTimestamp(value);
+                const date = new Date(normalized);
+                return Number.isNaN(date.getTime()) ? null : date;
+            } catch (error) {
+                console.warn('Erro ao converter data', value, error);
+                return null;
+            }
+        }
+
+        function updateRatingStars(value) {
+            selectedRating = value;
+            if (!ratingStarsButtons.length) return;
+
+            ratingStarsButtons.forEach(btn => {
+                const starValue = Number(btn.dataset.value);
+                btn.classList.toggle('selected', starValue <= value);
+            });
+        }
+
+        function renderReceivedRating(ratingInfo, otherName) {
+            if (!ratingInfo) {
+                return '<div class="rating-meta">Você ainda não recebeu uma avaliação.</div>';
+            }
+
+            const safeName = escapeHtml(otherName || 'seu parceiro');
+            const starsHtml = Array.from({ length: 5 }, (_, index) => {
+                const filledClass = index < Number(ratingInfo.rating || 0) ? 'filled' : '';
+                return `<span class="${filledClass}">★</span>`;
+            }).join('');
+
+            const comment = ratingInfo.comment ? escapeHtml(ratingInfo.comment) : '';
+            const commentHtml = comment
+                ? `<div class="received-comment">“${comment}”</div>`
+                : '<div class="rating-meta">Sem comentário adicional.</div>';
+
+            const dateObj = parseTimestamp(ratingInfo.created_at);
+            const dateLabel = dateObj
+                ? dateObj.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                : '';
+
+            const metaHtml = dateLabel ? `<div class="received-meta">Enviada em ${dateLabel}</div>` : '';
+
+            return `
+                <div class="received-rating">
+                    <h3>O que ${safeName} achou de você</h3>
+                    <div class="received-stars">${starsHtml}</div>
+                    ${commentHtml}
+                    ${metaHtml}
+                </div>
+            `;
+        }
+
+        async function openRatingModal() {
+            if (!currentMatchId) {
+                alert('Selecione um match antes de avaliar.');
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            ratingModal = ratingModal || document.getElementById('rating-modal');
+            const feedbackEl = document.getElementById('rating-feedback');
+            const commentEl = document.getElementById('rating-comment');
+            const nameEl = document.getElementById('rating-other-name');
+            const submitBtn = document.getElementById('rating-submit-btn');
+            const receivedContainer = document.getElementById('received-rating');
+
+            feedbackEl.className = 'rating-feedback';
+            feedbackEl.textContent = '';
+            commentEl.value = '';
+            receivedContainer.innerHTML = '';
+            updateRatingStars(0);
+
+            if (ratingModal) {
+                ratingModal.classList.add('show');
+                ratingModal.setAttribute('aria-hidden', 'false');
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/ratings/match/${currentMatchId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    feedbackEl.textContent = 'Não foi possível carregar informações do match.';
+                    feedbackEl.classList.add('error');
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                const data = await response.json();
+                ratingOtherUserName = data.other_user?.name || 'seu parceiro';
+                nameEl.textContent = ratingOtherUserName
+                    ? `Você está avaliando ${ratingOtherUserName}`
+                    : 'Avalie seu parceiro de estudo';
+                ratingCanRate = Boolean(data.can_rate);
+
+                if (data.your_rating) {
+                    const currentRating = Number(data.your_rating.rating) || 0;
+                    updateRatingStars(currentRating);
+                    commentEl.value = data.your_rating.comment || '';
+                }
+
+                receivedContainer.innerHTML = renderReceivedRating(data.received_rating, ratingOtherUserName);
+
+                submitBtn.disabled = !ratingCanRate;
+                if (!ratingCanRate) {
+                    feedbackEl.textContent = 'Este match não está ativo para receber avaliações.';
+                    feedbackEl.classList.add('error');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar avaliação', error);
+                feedbackEl.textContent = 'Erro de conexão ao carregar dados de avaliação.';
+                feedbackEl.classList.add('error');
+                submitBtn.disabled = true;
+            }
+        }
+
+        function closeRatingModal() {
+            ratingModal = ratingModal || document.getElementById('rating-modal');
+            if (ratingModal) {
+                ratingModal.classList.remove('show');
+                ratingModal.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        async function submitRating() {
+            if (!currentMatchId || ratingSubmitting) {
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (selectedRating < 1 || selectedRating > 5) {
+                const feedbackEl = document.getElementById('rating-feedback');
+                feedbackEl.textContent = 'Escolha uma nota entre 1 e 5.';
+                feedbackEl.classList.add('error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('rating-submit-btn');
+            const commentEl = document.getElementById('rating-comment');
+            const feedbackEl = document.getElementById('rating-feedback');
+
+            feedbackEl.className = 'rating-feedback';
+            feedbackEl.textContent = '';
+
+            ratingSubmitting = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+
+            try {
+                const response = await fetch(`${API_URL}/ratings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        match_id: currentMatchId,
+                        rating: selectedRating,
+                        comment: commentEl.value.trim() || null
+                    })
+                });
+
+                if (response.ok) {
+                    feedbackEl.textContent = 'Avaliação salva com sucesso!';
+                    feedbackEl.classList.add('success');
+                    setTimeout(() => {
+                        closeRatingModal();
+                    }, 1200);
+                } else if (response.status === 401 || response.status === 422) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    feedbackEl.textContent = errorData.error || 'Não foi possível salvar a avaliação.';
+                    feedbackEl.classList.add('error');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar avaliação', error);
+                feedbackEl.textContent = 'Erro de conexão ao salvar avaliação.';
+                feedbackEl.classList.add('error');
+            } finally {
+                ratingSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
 
         // Carregar conversas
         async function loadConversations() {
             const token = localStorage.getItem('authToken');
-            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/chat/conversations`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -576,20 +1022,45 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    conversations = data.conversations;
+                    conversations = data.conversations || [];
                     displayConversations(conversations);
-                    
-                    // Se veio de um match específico na URL
+
                     const urlParams = new URLSearchParams(window.location.search);
-                    const matchId = urlParams.get('match_id');
-                    if (matchId) {
-                        openChat(parseInt(matchId));
+                    const matchIdParam = urlParams.get('match_id');
+                    const shouldOpenRating = urlParams.get('rate') === '1';
+                    if (matchIdParam) {
+                        const numericMatchId = parseInt(matchIdParam, 10);
+                        if (!Number.isNaN(numericMatchId)) {
+                            pendingRatingOpen = shouldOpenRating;
+                            pendingRatingMatchId = numericMatchId;
+                            openChat(numericMatchId);
+                        }
+                    } else {
+                        pendingRatingOpen = false;
+                        pendingRatingMatchId = null;
                     }
+                } else if (response.status === 401 || response.status === 422) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
                 } else {
-                    console.error('Erro ao carregar conversas');
+                    console.error('Erro ao carregar conversas', response.status);
+                    document.getElementById('conversations-list').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <h2>Não foi possível carregar</h2>
+                            <p>Tente recarregar a página em instantes.</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Erro:', error);
+                document.getElementById('conversations-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📡</div>
+                        <h2>Sem conexão</h2>
+                        <p>Verifique se o backend está em execução.</p>
+                    </div>
+                `;
             }
         }
 
@@ -610,18 +1081,24 @@
             container.innerHTML = convs.map(conv => {
                 const emoji = conv.other_user_type === 'teacher' ? '👨‍🏫' : '📚';
                 const time = formatTime(conv.last_message_time);
-                const preview = conv.last_message || 'Nenhuma mensagem ainda';
+                const preview = escapeHtml(conv.last_message || 'Nenhuma mensagem ainda');
                 const unreadBadge = conv.unread_count > 0 
                     ? `<span class="unread-badge">${conv.unread_count}</span>` 
                     : '';
+                const safeName = escapeHtml(conv.other_user_name);
+                const encodedName = encodeURIComponent(conv.other_user_name ?? '');
+                const encodedType = encodeURIComponent(conv.other_user_type ?? '');
 
                 return `
                     <div class="conversation-item ${conv.match_id === currentMatchId ? 'active' : ''}" 
-                         onclick="openChat(${conv.match_id}, '${conv.other_user_name}', '${conv.other_user_type}', '${emoji}')">
+                         data-match-id="${conv.match_id}"
+                         data-user-name="${encodedName}"
+                         data-user-type="${encodedType}"
+                         data-emoji="${emoji}">
                         <div class="conversation-avatar">${emoji}</div>
                         <div class="conversation-info">
                             <div class="conversation-header">
-                                <span class="conversation-name">${conv.other_user_name}</span>
+                                <span class="conversation-name">${safeName}</span>
                                 <span class="conversation-time">${time}</span>
                             </div>
                             <div class="conversation-preview">${preview}</div>
@@ -630,12 +1107,24 @@
                     </div>
                 `;
             }).join('');
+
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const matchId = Number(item.dataset.matchId);
+                    const userName = decodeURIComponent(item.dataset.userName || '');
+                    const userType = decodeURIComponent(item.dataset.userType || '');
+                    const emoji = item.dataset.emoji;
+                    openChat(matchId, userName, userType, emoji);
+                });
+            });
         }
 
         function formatTime(timestamp) {
             if (!timestamp) return '';
             
-            const date = new Date(timestamp);
+            const date = parseTimestamp(timestamp);
+            if (!date) return '';
+
             const now = new Date();
             const diffMs = now - date;
             const diffMins = Math.floor(diffMs / 60000);
@@ -681,6 +1170,12 @@
             // Auto-refresh a cada 3 segundos
             if (messagesRefreshInterval) clearInterval(messagesRefreshInterval);
             messagesRefreshInterval = setInterval(() => loadMessages(matchId), 3000);
+
+            if (pendingRatingOpen && pendingRatingMatchId === matchId) {
+                pendingRatingOpen = false;
+                pendingRatingMatchId = null;
+                openRatingModal();
+            }
         }
 
         async function loadMessages(matchId) {
@@ -694,11 +1189,30 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    displayMessages(data.messages);
+                    const messages = Array.isArray(data.messages) ? data.messages : [];
+                    displayMessages(messages);
+                    updateConversationMetadata(matchId, messages);
                 }
             } catch (error) {
                 console.error('Erro ao carregar mensagens:', error);
             }
+        }
+
+        function updateConversationMetadata(matchId, messages) {
+            const index = conversations.findIndex(c => c.match_id === matchId);
+            if (index === -1) {
+                return;
+            }
+
+            conversations[index].unread_count = 0;
+
+            if (messages.length > 0) {
+                const lastMessage = messages[messages.length - 1];
+                conversations[index].last_message = lastMessage.message_text;
+                conversations[index].last_message_time = lastMessage.sent_at;
+            }
+
+            displayConversations(conversations);
         }
 
         function displayMessages(messages) {
@@ -708,10 +1222,10 @@
             container.innerHTML = messages.map(msg => {
                 const isSent = msg.sender_id === currentUserId;
                 const emoji = isSent ? '😊' : (msg.sender_id !== currentUserId ? '👤' : '😊');
-                const time = new Date(msg.sent_at).toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
+                const messageDate = parseTimestamp(msg.sent_at);
+                const time = messageDate 
+                    ? messageDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    : '';
 
                 return `
                     <div class="message ${isSent ? 'sent' : 'received'}">
@@ -770,7 +1284,7 @@
 
         function escapeHtml(text) {
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = text ?? '';
             return div.innerHTML;
         }
 
@@ -809,10 +1323,32 @@
 
         // Inicializar
         window.addEventListener('DOMContentLoaded', () => {
+            ratingModal = document.getElementById('rating-modal');
+            ratingStarsButtons = Array.from(document.querySelectorAll('.rating-star'));
+            ratingStarsButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    updateRatingStars(Number(btn.dataset.value));
+                });
+            });
+
+            if (ratingModal) {
+                ratingModal.addEventListener('click', event => {
+                    if (event.target === ratingModal) {
+                        closeRatingModal();
+                    }
+                });
+            }
+
             if (!localStorage.getItem('authToken')) {
                 window.location.href = 'login.html';
             } else {
                 loadConversations();
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && ratingModal && ratingModal.classList.contains('show')) {
+                closeRatingModal();
             }
         });
 

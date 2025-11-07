@@ -59,7 +59,16 @@ def complete_profile():
         update_values = [data['user_type']]
 
         # Campos opcionais que podem vir no body
-        optional_user_fields = ['location', 'languages', 'availability', 'price_per_hour', 'credentials']
+        optional_user_fields = [
+            'name',
+            'bio',
+            'photo_url',
+            'location',
+            'languages',
+            'availability',
+            'price_per_hour',
+            'credentials'
+        ]
         for f in optional_user_fields:
             if f in data:
                 update_fields.append(f)

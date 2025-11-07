@@ -203,7 +203,16 @@ def get_conversations():
             JOIN users u2 ON m.user2_id = u2.id
             WHERE m.is_active = 1 
             AND (m.user1_id = ? OR m.user2_id = ?)
-            ORDER BY last_message_time DESC NULLS LAST
+            ORDER BY COALESCE(
+                (
+                    SELECT sent_at 
+                    FROM messages 
+                    WHERE match_id = m.id 
+                    ORDER BY sent_at DESC 
+                    LIMIT 1
+                ),
+                m.matched_at
+            ) DESC
         '''
         
         cursor.execute(query, (

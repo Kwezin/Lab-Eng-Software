@@ -296,7 +296,9 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
+    // Detect preview/local origin so fetch works on Codespaces and localhost
+    const origin = window.location.origin;
+    const API_URL = origin && origin !== 'null' ? `${origin}/api` : 'http://localhost:5000/api';
 
         async function loadProfile() {
             const token = localStorage.getItem('authToken');
@@ -380,25 +382,35 @@
             const token = localStorage.getItem('authToken');
             const userId = localStorage.getItem('userId');
 
+            if (!token) {
+                return;
+            }
+
             try {
-                // Buscar matches
-                const matchesResponse = await fetch(`${API_URL}/discover/matches`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (matchesResponse.ok) {
-                    const matchesData = await matchesResponse.json();
-                    document.getElementById('total-matches').textContent = matchesData.matches.length;
+                const headers = { 'Authorization': `Bearer ${token}` };
+                const statsPromise = fetch(`${API_URL}/discover/stats`, { headers });
+                const profilePromise = userId 
+                    ? fetch(`${API_URL}/profile/${userId}`, { headers })
+                    : null;
+
+                const statsResponse = await statsPromise;
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    document.getElementById('total-matches').textContent = statsData.total_matches ?? 0;
+                    document.getElementById('total-swipes').textContent = statsData.total_swipes ?? 0;
+                } else {
+                    console.error('Erro ao carregar estatísticas gerais', statsResponse.status);
                 }
 
-                // Buscar perfil público para ver avaliações
-                const profileResponse = await fetch(`${API_URL}/profile/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (profileResponse.ok) {
-                    const profileData = await profileResponse.json();
-                    if (profileData.avg_rating) {
-                        document.getElementById('avg-rating').textContent = 
-                            `${profileData.avg_rating.toFixed(1)} ⭐`;
+                if (profilePromise) {
+                    const profileResponse = await profilePromise;
+                    if (profileResponse.ok) {
+                        const profileData = await profileResponse.json();
+                        if (profileData.avg_rating) {
+                            document.getElementById('avg-rating').textContent = `${profileData.avg_rating.toFixed(1)} ⭐`;
+                        } else {
+                            document.getElementById('avg-rating').textContent = '-';
+                        }
                     }
                 }
             } catch (error) {
@@ -407,7 +419,7 @@
         }
 
         function editProfile() {
-            alert('Funcionalidade de edição de perfil em desenvolvimento!');
+            window.location.href = 'profile_edit.html';
         }
 
         function goToDiscover() {

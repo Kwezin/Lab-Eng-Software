@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TINTIN - Complete seu Perfil</title>
+    <title>TINTIN - Editar Perfil</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 720px;
             margin: 0 auto;
         }
 
@@ -38,15 +38,16 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
             margin-bottom: 20px;
+            position: relative;
         }
 
         .user-type-selector {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .type-option {
@@ -68,6 +69,12 @@
             background: linear-gradient(135deg, #667eea15, #764ba215);
         }
 
+        .type-option.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         .type-option .icon {
             font-size: 48px;
             margin-bottom: 10px;
@@ -83,16 +90,33 @@
             color: #666;
         }
 
-        .form-section {
+        .type-note {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
             display: none;
         }
 
-        .form-section.active {
-            display: block;
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 25px 0 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
         }
 
         .form-group {
             margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .form-group label {
@@ -118,7 +142,7 @@
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
         }
 
         .add-item-group {
@@ -145,15 +169,24 @@
             margin-top: 20px;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:enabled {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
         }
 
         .btn-secondary {
             background: #667eea;
             color: white;
-            padding: 12px 20px;
+            padding: 12px 22px;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
         }
 
         .error-message {
@@ -169,19 +202,34 @@
             display: block;
         }
 
+        .success-message {
+            background: #ecfdf5;
+            color: #047857;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
         .interest-card {
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 10px;
             position: relative;
+            background: #fafbff;
         }
 
         .interest-card .remove-btn {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #ff4444;
+            background: #ef4444;
             border: none;
             color: white;
             width: 24px;
@@ -190,127 +238,280 @@
             cursor: pointer;
             font-size: 16px;
         }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(102,126,234,0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 28px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 Complete seu Perfil</h1>
-            <p>Escolha como você deseja participar</p>
+            <h1 id="page-title">🎓 Complete seu Perfil</h1>
+            <p id="page-subtitle">Conte mais sobre você para receber matches melhores</p>
         </div>
 
         <div class="card">
-            <div class="user-type-selector">
-                <div class="type-option" id="student-option" onclick="selectUserType('student')">
-                    <div class="icon">📚</div>
-                    <h3>Quero Aprender</h3>
-                    <p>Encontre professores para te ajudar</p>
-                </div>
-                <div class="type-option" id="teacher-option" onclick="selectUserType('teacher')">
-                    <div class="icon">👨‍🏫</div>
-                    <h3>Quero Ensinar</h3>
-                    <p>Compartilhe seu conhecimento</p>
-                </div>
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando informações do seu perfil...</p>
             </div>
 
-            <!-- Formulário para Alunos -->
-            <form id="student-form" class="form-section">
-                <h2 style="margin-bottom: 20px;">O que você quer aprender?</h2>
-                
-                <div class="add-item-group">
-                    <div style="display: grid; gap: 10px;">
-                        <input type="text" id="interest-name" placeholder="Ex: Python, Trocar Chuveiro, Tocar Violão...">
-                        <select id="interest-difficulty">
-                            <option value="beginner">Iniciante</option>
-                            <option value="intermediate">Intermediário</option>
-                            <option value="advanced">Avançado</option>
-                        </select>
-                        <textarea id="interest-description" placeholder="Descreva o que você quer aprender (opcional)" rows="2"></textarea>
+            <div id="form-content" style="display: none;">
+                <div class="user-type-selector">
+                    <div class="type-option" id="student-option" onclick="selectUserType('student')">
+                        <div class="icon">📚</div>
+                        <h3>Quero Aprender</h3>
+                        <p>Encontre professores para te ajudar</p>
                     </div>
-                    <button type="button" class="btn btn-secondary" onclick="addInterest()">Adicionar</button>
+                    <div class="type-option" id="teacher-option" onclick="selectUserType('teacher')">
+                        <div class="icon">👨‍🏫</div>
+                        <h3>Quero Ensinar</h3>
+                        <p>Compartilhe seu conhecimento</p>
+                    </div>
+                </div>
+                <p class="type-note" id="type-note">Caso deseje alterar o tipo da sua conta, fale com o suporte para avaliarmos juntos.</p>
+
+                <div class="section-title">Informações gerais</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name-input">Nome</label>
+                        <input type="text" id="name-input" placeholder="Seu nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="location-input">Localização</label>
+                        <input type="text" id="location-input" placeholder="Cidade, Estado">
+                    </div>
+                    <div class="form-group">
+                        <label for="languages-input">Idiomas</label>
+                        <input type="text" id="languages-input" placeholder="Ex: Português, Inglês">
+                    </div>
+                    <div class="form-group">
+                        <label for="availability-input">Disponibilidade</label>
+                        <input type="text" id="availability-input" placeholder="Ex: Noites durante a semana">
+                    </div>
+                    <div class="form-group">
+                        <label for="price-input">Valor por hora (opcional)</label>
+                        <input type="number" step="0.01" id="price-input" placeholder="Ex: 60.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="credentials-input">Formação & Certificações</label>
+                        <input type="text" id="credentials-input" placeholder="Ex: Licenciatura em Matemática">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="bio-input">Sobre você</label>
+                        <textarea id="bio-input" rows="4" placeholder="Conte um pouco sobre sua experiência, hobbies ou objetivos."></textarea>
+                    </div>
                 </div>
 
-                <div id="interests-container" style="margin-top: 20px;"></div>
+                <div id="global-error" class="error-message"></div>
+                <div id="save-feedback" class="success-message"></div>
 
-                <button type="submit" class="btn btn-primary">Concluir Cadastro</button>
-                <div id="student-error" class="error-message"></div>
-            </form>
+                <form id="student-form" class="form-section">
+                    <h2 class="section-title">O que você quer aprender?</h2>
 
-            <!-- Formulário para Professores -->
-            <form id="teacher-form" class="form-section">
-                <h2 style="margin-bottom: 20px;">O que você pode ensinar?</h2>
-                
-                <div class="add-item-group">
-                    <div style="display: grid; gap: 10px;">
-                        <input type="text" id="skill-name" placeholder="Ex: Python, Eletricista, Violão...">
-                        <textarea id="skill-description" placeholder="Descreva sua experiência (opcional)" rows="2"></textarea>
+                    <div class="add-item-group">
+                        <div style="display: grid; gap: 10px;">
+                            <input type="text" id="interest-name" placeholder="Ex: Python, Trocar Chuveiro, Violão...">
+                            <select id="interest-difficulty">
+                                <option value="beginner">Iniciante</option>
+                                <option value="intermediate">Intermediário</option>
+                                <option value="advanced">Avançado</option>
+                            </select>
+                            <textarea id="interest-description" placeholder="Descreva o que você quer aprender (opcional)" rows="2"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addInterest()">Adicionar</button>
                     </div>
-                    <button type="button" class="btn btn-secondary" onclick="addSkill()">Adicionar</button>
-                </div>
 
-                <div id="skills-container" style="margin-top: 20px;"></div>
+                    <div id="interests-container" style="margin-top: 20px;"></div>
 
-                <button type="submit" class="btn btn-primary">Concluir Cadastro</button>
-                <div id="teacher-error" class="error-message"></div>
-            </form>
+                    <button type="submit" class="btn btn-primary" data-label="Concluir Cadastro">Concluir Cadastro</button>
+                    <div id="student-error" class="error-message"></div>
+                </form>
+
+                <form id="teacher-form" class="form-section">
+                    <h2 class="section-title">O que você pode ensinar?</h2>
+
+                    <div class="add-item-group">
+                        <div style="display: grid; gap: 10px;">
+                            <input type="text" id="skill-name" placeholder="Ex: Python, Eletricidade, Violão...">
+                            <textarea id="skill-description" placeholder="Descreva sua experiência (opcional)" rows="2"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addSkill()">Adicionar</button>
+                    </div>
+
+                    <div id="skills-container" style="margin-top: 20px;"></div>
+
+                    <button type="submit" class="btn btn-primary" data-label="Concluir Cadastro">Concluir Cadastro</button>
+                    <div id="teacher-error" class="error-message"></div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-        // Detectar URL da API automaticamente (localhost ou Codespace)
-        const API_BASE = window.location.origin.includes('github.dev') 
-            ? window.location.origin 
-            : 'http://localhost:5000';
-        const API_URL = `${API_BASE}/api/profile`;
-        
-        console.log('🌐 API URL detectada:', API_URL);
-        
+        const origin = window.location.origin;
+        const API_BASE = origin && origin !== 'null' ? origin : 'http://localhost:5000';
+        const PROFILE_API = `${API_BASE}/api/profile`;
+
         let selectedUserType = null;
         let interests = [];
         let skills = [];
+        let isEditing = false;
+        let lockUserType = false;
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value ?? '';
+            return div.innerHTML;
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading-state');
+            const content = document.getElementById('form-content');
+            loading.style.display = show ? 'block' : 'none';
+            content.style.display = show ? 'none' : 'block';
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+            const feedback = document.getElementById('save-feedback');
+            feedback.classList.remove('show');
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.textContent = message;
+            element.classList.add('show');
+        }
+
+        function setPrimaryButtonsLabel(label) {
+            document.querySelectorAll('.btn-primary').forEach(btn => {
+                btn.dataset.label = label;
+                btn.textContent = label;
+            });
+        }
+
+        function toggleSaving(isSaving) {
+            document.querySelectorAll('.btn-primary').forEach(btn => {
+                btn.disabled = isSaving;
+                btn.textContent = isSaving ? 'Salvando...' : (btn.dataset.label || 'Concluir Cadastro');
+            });
+        }
+
+        function applyUserTypeUI(type) {
+            const studentOption = document.getElementById('student-option');
+            const teacherOption = document.getElementById('teacher-option');
+            const typeNote = document.getElementById('type-note');
+
+            studentOption.classList.remove('selected', 'disabled');
+            teacherOption.classList.remove('selected', 'disabled');
+
+            document.getElementById('student-form').classList.remove('active');
+            document.getElementById('teacher-form').classList.remove('active');
+
+            if (type === 'student') {
+                studentOption.classList.add('selected');
+                document.getElementById('student-form').classList.add('active');
+            } else if (type === 'teacher') {
+                teacherOption.classList.add('selected');
+                document.getElementById('teacher-form').classList.add('active');
+            }
+
+            if (lockUserType && type) {
+                typeNote.style.display = 'block';
+                if (type === 'student') {
+                    teacherOption.classList.add('disabled');
+                } else {
+                    studentOption.classList.add('disabled');
+                }
+            } else {
+                typeNote.style.display = 'none';
+            }
+        }
 
         function selectUserType(type) {
+            clearErrors();
+            if (lockUserType && selectedUserType && type !== selectedUserType) {
+                alert('Para alterar o tipo da conta, entre em contato com o suporte.');
+                return;
+            }
             selectedUserType = type;
-            
-            // Remover seleção anterior
-            document.getElementById('student-option').classList.remove('selected');
-            document.getElementById('teacher-option').classList.remove('selected');
-            
-            // Adicionar seleção no clicado
-            document.getElementById(`${type}-option`).classList.add('selected');
-            
-            // Mostrar formulário correto
-            document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
-            document.getElementById(`${type}-form`).classList.add('active');
+            applyUserTypeUI(type);
         }
 
         function addInterest() {
+            clearErrors();
             const name = document.getElementById('interest-name').value.trim();
             const difficulty = document.getElementById('interest-difficulty').value;
             const description = document.getElementById('interest-description').value.trim();
 
             if (!name) {
-                alert('Por favor, digite o que você quer aprender');
+                showError('student-error', 'Informe o que deseja aprender antes de adicionar.');
                 return;
             }
 
-            interests.push({ name, difficulty, description });
+            interests.push({
+                name,
+                difficulty,
+                description,
+                desiredLevel: difficulty
+            });
             renderInterests();
-            
+
             document.getElementById('interest-name').value = '';
             document.getElementById('interest-description').value = '';
         }
 
         function renderInterests() {
             const container = document.getElementById('interests-container');
+            if (interests.length === 0) {
+                container.innerHTML = '<p style="color:#666;">Nenhum interesse adicionado ainda.</p>';
+                return;
+            }
+
+            const label = {
+                beginner: 'Iniciante',
+                intermediate: 'Intermediário',
+                advanced: 'Avançado'
+            };
+
             container.innerHTML = interests.map((interest, index) => `
                 <div class="interest-card">
-                    <button class="remove-btn" onclick="removeInterest(${index})">×</button>
-                    <strong>${interest.name}</strong>
+                    <button class="remove-btn" type="button" onclick="removeInterest(${index})">×</button>
+                    <strong>${escapeHtml(interest.name)}</strong>
                     <div style="color: #666; font-size: 14px; margin-top: 5px;">
-                        Nível: ${interest.difficulty === 'beginner' ? 'Iniciante' : interest.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                        Nível desejado: ${label[interest.difficulty] || 'N/A'}
                     </div>
-                    ${interest.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${interest.description}</div>` : ''}
+                    ${interest.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${escapeHtml(interest.description)}</div>` : ''}
                 </div>
             `).join('');
         }
@@ -321,28 +522,38 @@
         }
 
         function addSkill() {
+            clearErrors();
             const name = document.getElementById('skill-name').value.trim();
             const description = document.getElementById('skill-description').value.trim();
 
             if (!name) {
-                alert('Por favor, digite o que você pode ensinar');
+                showError('teacher-error', 'Informe a habilidade antes de adicionar.');
                 return;
             }
 
-            skills.push({ name, description });
+            skills.push({
+                name,
+                description,
+                level: null
+            });
             renderSkills();
-            
+
             document.getElementById('skill-name').value = '';
             document.getElementById('skill-description').value = '';
         }
 
         function renderSkills() {
             const container = document.getElementById('skills-container');
+            if (skills.length === 0) {
+                container.innerHTML = '<p style="color:#666;">Nenhuma habilidade adicionada ainda.</p>';
+                return;
+            }
+
             container.innerHTML = skills.map((skill, index) => `
                 <div class="interest-card">
-                    <button class="remove-btn" onclick="removeSkill(${index})">×</button>
-                    <strong>${skill.name}</strong>
-                    ${skill.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${skill.description}</div>` : ''}
+                    <button class="remove-btn" type="button" onclick="removeSkill(${index})">×</button>
+                    <strong>${escapeHtml(skill.name)}</strong>
+                    ${skill.description ? `<div style="color: #666; font-size: 14px; margin-top: 5px;">${escapeHtml(skill.description)}</div>` : ''}
                 </div>
             `).join('');
         }
@@ -352,72 +563,236 @@
             renderSkills();
         }
 
-        // Submit do formulário de aluno
-        document.getElementById('student-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function collectGeneralFields() {
+            const priceRaw = document.getElementById('price-input').value.trim();
+            let priceValue = null;
 
-            if (interests.length === 0) {
-                document.getElementById('student-error').textContent = 'Adicione pelo menos um interesse';
-                document.getElementById('student-error').classList.add('show');
+            if (priceRaw !== '') {
+                const parsed = parseFloat(priceRaw.replace(',', '.'));
+                if (Number.isNaN(parsed)) {
+                    throw new Error('invalid-price');
+                }
+                priceValue = parsed;
+            }
+
+            return {
+                name: document.getElementById('name-input').value.trim(),
+                bio: document.getElementById('bio-input').value.trim(),
+                location: document.getElementById('location-input').value.trim(),
+                languages: document.getElementById('languages-input').value.trim(),
+                availability: document.getElementById('availability-input').value.trim(),
+                price_per_hour: priceValue,
+                credentials: document.getElementById('credentials-input').value.trim()
+            };
+        }
+
+        function buildPayload(userType) {
+            const payload = collectGeneralFields();
+
+            if (userType === 'teacher') {
+                payload.skills = skills.map(skill => ({
+                    name: skill.name,
+                    description: skill.description || '',
+                    level: skill.level || null,
+                    requires_evaluation: Boolean(skill.requiresEvaluation)
+                }));
+            } else if (userType === 'student') {
+                payload.interests = interests.map(interest => ({
+                    name: interest.name,
+                    difficulty: interest.difficulty || 'beginner',
+                    description: interest.description || '',
+                    desired_level: interest.desiredLevel || interest.difficulty || 'beginner',
+                    requires_evaluation: Boolean(interest.requiresEvaluation)
+                }));
+            }
+
+            return payload;
+        }
+
+        async function saveProfile(userType) {
+            clearErrors();
+
+            if (!selectedUserType) {
+                showError('global-error', 'Selecione se você quer aprender ou ensinar antes de continuar.');
                 return;
             }
 
-            await completeProfile('student', { interests });
-        });
-
-        // Submit do formulário de professor
-        document.getElementById('teacher-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (skills.length === 0) {
-                document.getElementById('teacher-error').textContent = 'Adicione pelo menos uma habilidade';
-                document.getElementById('teacher-error').classList.add('show');
+            if (selectedUserType !== userType) {
+                showError('global-error', 'Finalize o formulário correspondente ao tipo selecionado.');
                 return;
             }
 
-            await completeProfile('teacher', { skills });
-        });
+            if (userType === 'student' && interests.length === 0) {
+                showError('student-error', 'Adicione pelo menos um interesse.');
+                return;
+            }
 
-        async function completeProfile(userType, data) {
+            if (userType === 'teacher' && skills.length === 0) {
+                showError('teacher-error', 'Adicione pelo menos uma habilidade.');
+                return;
+            }
+
+            let payload;
+            try {
+                payload = buildPayload(userType);
+            } catch (error) {
+                if (error.message === 'invalid-price') {
+                    showError('global-error', 'Informe um valor por hora válido usando apenas números.');
+                    return;
+                }
+                throw error;
+            }
+
+            if (!isEditing) {
+                payload.user_type = userType;
+            }
+
+            const endpoint = isEditing ? `${PROFILE_API}/update` : `${PROFILE_API}/complete`;
+            const method = isEditing ? 'PUT' : 'POST';
             const token = localStorage.getItem('authToken');
 
-            try {
-                console.log('📤 Enviando para:', `${API_URL}/complete`);
-                console.log('📤 Dados:', { user_type: userType, ...data });
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-                const response = await fetch(`${API_URL}/complete`, {
-                    method: 'POST',
+            toggleSaving(true);
+
+            try {
+                const response = await fetch(endpoint, {
+                    method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        user_type: userType,
-                        ...data
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
-                console.log('📥 Resposta:', result);
+                const result = await response.json().catch(() => ({}));
 
                 if (response.ok) {
-                    localStorage.setItem('userType', userType);
-                    window.location.href = '/discover.html';
+                    localStorage.setItem('userType', selectedUserType);
+                    const feedback = document.getElementById('save-feedback');
+                    feedback.textContent = isEditing ? 'Perfil atualizado com sucesso! Redirecionando...' : 'Perfil completado com sucesso! Vamos te levar aos matches.';
+                    feedback.classList.add('show');
+
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 1200);
                 } else {
-                    document.getElementById(`${userType}-error`).textContent = result.error || 'Erro ao salvar perfil';
-                    document.getElementById(`${userType}-error`).classList.add('show');
+                    if (result && result.error) {
+                        showError(userType === 'teacher' ? 'teacher-error' : 'student-error', result.error);
+                    } else {
+                        showError(userType === 'teacher' ? 'teacher-error' : 'student-error', 'Não foi possível salvar. Tente novamente.');
+                    }
                 }
             } catch (error) {
-                console.error('❌ Erro:', error);
-                document.getElementById(`${userType}-error`).textContent = 'Erro ao salvar perfil';
-                document.getElementById(`${userType}-error`).classList.add('show');
+                console.error('Erro ao salvar perfil:', error);
+                showError(userType === 'teacher' ? 'teacher-error' : 'student-error', 'Erro ao salvar. Verifique sua conexão e tente novamente.');
+            } finally {
+                toggleSaving(false);
             }
         }
 
-        // Verificar se está logado
+        function populateGeneralFields(profile) {
+            if (!profile) return;
+            document.getElementById('name-input').value = profile.name || '';
+            document.getElementById('bio-input').value = profile.bio || '';
+            document.getElementById('location-input').value = profile.location || '';
+            document.getElementById('languages-input').value = profile.languages || '';
+            document.getElementById('availability-input').value = profile.availability || '';
+            document.getElementById('credentials-input').value = profile.credentials || '';
+            document.getElementById('price-input').value = profile.price_per_hour != null ? profile.price_per_hour : '';
+        }
+
+        function populateTypeSpecificData(profile) {
+            if (!profile || !profile.user_type) {
+                renderInterests();
+                renderSkills();
+                return;
+            }
+
+            if (profile.user_type === 'teacher') {
+                skills = Array.isArray(profile.skills) ? profile.skills.map(skill => ({
+                    name: skill.skill_name,
+                    description: skill.skill_description || '',
+                    level: skill.skill_level || null,
+                    requiresEvaluation: Boolean(skill.requires_evaluation)
+                })) : [];
+                renderSkills();
+            } else {
+                interests = Array.isArray(profile.interests) ? profile.interests.map(interest => ({
+                    name: interest.interest_name,
+                    difficulty: interest.difficulty_level || 'beginner',
+                    description: interest.description || '',
+                    desiredLevel: interest.desired_level || interest.difficulty_level || 'beginner',
+                    requiresEvaluation: Boolean(interest.requires_evaluation)
+                })) : [];
+                renderInterests();
+            }
+        }
+
+        async function loadProfile() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${PROFILE_API}/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const profile = await response.json();
+                    populateGeneralFields(profile);
+
+                    if (profile.user_type) {
+                        isEditing = true;
+                        lockUserType = true;
+                        selectedUserType = profile.user_type;
+                        setPrimaryButtonsLabel('Salvar alterações');
+                        document.getElementById('page-title').textContent = '✏️ Edite seu Perfil';
+                        document.getElementById('page-subtitle').textContent = 'Atualize suas informações para continuar encontrando matches incríveis.';
+                    } else {
+                        setPrimaryButtonsLabel('Concluir Cadastro');
+                    }
+
+                    populateTypeSpecificData(profile);
+                    applyUserTypeUI(selectedUserType);
+                } else {
+                    setPrimaryButtonsLabel('Concluir Cadastro');
+                    renderInterests();
+                    renderSkills();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar perfil:', error);
+                showError('global-error', 'Não foi possível carregar suas informações. Tente novamente.');
+                renderInterests();
+                renderSkills();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        document.getElementById('student-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await saveProfile('student');
+        });
+
+        document.getElementById('teacher-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await saveProfile('teacher');
+        });
+
         window.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('authToken')) {
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
+            } else {
+                loadProfile();
             }
         });
     </script>

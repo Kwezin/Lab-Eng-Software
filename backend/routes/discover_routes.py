@@ -96,6 +96,29 @@ def get_profiles():
                         if i.get('interest_name') and i['interest_name'].lower() in current_user_interests:
                             profile['match_score'] += 1
 
+            # carregar média de avaliações do usuário
+            cursor.execute(
+                '''
+                SELECT AVG(rating) AS avg_rating, COUNT(*) AS total_ratings
+                FROM ratings
+                WHERE rated_id = ?
+                ''',
+                (profile['id'],)
+            )
+            rating_row = cursor.fetchone()
+
+            average = None
+            count = 0
+            if rating_row:
+                count = rating_row['total_ratings'] or 0
+                if rating_row['avg_rating'] is not None:
+                    average = round(float(rating_row['avg_rating']), 2)
+
+            profile['rating_summary'] = {
+                'average': average,
+                'count': count
+            }
+
         # Ordenar por match_score decrescente para apresentar candidatos mais relevantes primeiro
         profiles.sort(key=lambda p: p.get('match_score', 0), reverse=True)
 
@@ -304,6 +327,21 @@ def get_matches():
                 }
             else:
                 match['last_message'] = None
+
+            # Avaliações relacionadas ao match
+            cursor.execute(
+                'SELECT rating FROM ratings WHERE match_id = ? AND rater_id = ?',
+                (match['match_id'], current_user_id)
+            )
+            my_rating_row = cursor.fetchone()
+            match['my_rating'] = my_rating_row['rating'] if my_rating_row else None
+
+            cursor.execute(
+                'SELECT rating FROM ratings WHERE match_id = ? AND rated_id = ? AND rater_id = ?',
+                (match['match_id'], current_user_id, other_user_id)
+            )
+            received_row = cursor.fetchone()
+            match['received_rating'] = received_row['rating'] if received_row else None
         
         return jsonify({'matches': matches}), 200
         

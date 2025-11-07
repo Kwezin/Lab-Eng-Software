@@ -24,6 +24,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header h1 {
@@ -33,7 +35,8 @@
 
         .nav-menu {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -46,11 +49,13 @@
             text-decoration: none;
             color: #333;
             transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .nav-btn:hover {
             background: #667eea;
             color: white;
+            transform: translateY(-2px);
         }
 
         .nav-btn.active {
@@ -90,6 +95,7 @@
             gap: 15px;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
 
         .filter-label {
@@ -130,7 +136,6 @@
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            cursor: pointer;
             position: relative;
         }
 
@@ -186,6 +191,7 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
+            word-wrap: break-word;
         }
 
         .match-type-location {
@@ -231,6 +237,7 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            word-wrap: break-word;
         }
 
         .match-date {
@@ -283,6 +290,7 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            word-wrap: break-word;
         }
 
         .match-divider {
@@ -307,6 +315,45 @@
         .chat-btn:hover {
             transform: scale(1.02);
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .match-rating {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .match-rating .stars {
+            color: #f59e0b;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .match-rating.pending {
+            color: #92400e;
+        }
+
+        .rating-secondary-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .rating-secondary-btn:hover {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
         }
 
         .no-matches {
@@ -362,17 +409,58 @@
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .debug-panel {
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: monospace;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .matches-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+    <button class="debug-btn" onclick="toggleDebug()">🐛 Debug</button>
+
     <div class="header">
         <h1>🎓 TINTIN</h1>
         <div class="nav-menu">
+            <a href="menu.html" class="nav-btn">🏠 Menu</a>
             <a href="discover.html" class="nav-btn">🔍 Descobrir</a>
             <a href="matches.html" class="nav-btn active">💬 Matches</a>
             <a href="profile.html" class="nav-btn">👤 Perfil</a>
@@ -388,10 +476,10 @@
 
         <div id="filters-bar" class="filters-bar" style="display: none;">
             <span class="filter-label">Filtrar:</span>
-            <button class="filter-btn active" onclick="filterMatches('all')">Todos</button>
-            <button class="filter-btn" onclick="filterMatches('teacher')">Professores</button>
-            <button class="filter-btn" onclick="filterMatches('student')">Alunos</button>
-            <button class="filter-btn" onclick="filterMatches('unread')">Não lidas</button>
+            <button class="filter-btn active" data-filter="all">Todos</button>
+            <button class="filter-btn" data-filter="teacher">Professores</button>
+            <button class="filter-btn" data-filter="student">Alunos</button>
+            <button class="filter-btn" data-filter="unread">Não lidas</button>
         </div>
 
         <div id="loading" class="loading">
@@ -407,101 +495,192 @@
             <p>Continue dando like para encontrar parceiros de estudo!</p>
             <a href="discover.html" class="discover-btn">🔍 Descobrir Pessoas</a>
         </div>
+
+        <div id="debug-panel" class="debug-panel"></div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
+    // Detect preview/local origin so fetch works on Codespaces and localhost
+    const origin = window.location.origin;
+    const API_URL = origin && origin !== 'null' ? `${origin}/api` : 'http://localhost:5000/api';
         let allMatches = [];
         let currentFilter = 'all';
+        let debugLogs = [];
 
+        // Função de debug
+        function log(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry, data || '');
+            debugLogs.push(logEntry + (data ? '\n' + JSON.stringify(data, null, 2) : ''));
+            updateDebugPanel();
+        }
+
+        function updateDebugPanel() {
+            const panel = document.getElementById('debug-panel');
+            panel.textContent = debugLogs.slice(-20).join('\n\n');
+        }
+
+        function toggleDebug() {
+            const panel = document.getElementById('debug-panel');
+            panel.classList.toggle('show');
+        }
+
+        function normalizeTimestamp(value) {
+            let result = String(value).trim();
+            if (!result.includes('T')) {
+                result = result.replace(' ', 'T');
+            }
+            if (!/([+-]\d{2}:?\d{2}|Z)$/i.test(result)) {
+                result = `${result}Z`;
+            }
+            return result;
+        }
+
+        function parseTimestamp(value) {
+            if (!value) return null;
+            try {
+                const normalized = normalizeTimestamp(value);
+                const date = new Date(normalized);
+                return Number.isNaN(date.getTime()) ? null : date;
+            } catch (error) {
+                log('Erro ao converter data', { value, error: error.message });
+                return null;
+            }
+        }
+
+        // Função segura de escape HTML
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = String(text);
             return div.innerHTML;
         }
 
+        // Função segura de formatação de data
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffTime = Math.abs(now - date);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (!dateString) return 'Data desconhecida';
             
-            if (diffDays === 0) return 'Hoje';
-            if (diffDays === 1) return 'Ontem';
-            if (diffDays < 7) return `${diffDays} dias atrás`;
-            return date.toLocaleDateString('pt-BR');
+            try {
+                const date = parseTimestamp(dateString);
+                if (!date) return 'Data inválida';
+                
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Hoje';
+                if (diffDays === 1) return 'Ontem';
+                if (diffDays < 7) return `${diffDays} dias atrás`;
+                return date.toLocaleDateString('pt-BR');
+            } catch (e) {
+                log('Erro ao formatar data', { dateString, error: e.message });
+                return 'Data inválida';
+            }
+        }
+
+        // Função para formatar tempo
+        function formatTime(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = parseTimestamp(dateString);
+                if (!date) return '';
+                
+                const now = new Date();
+                const diffMinutes = Math.floor((now - date) / (1000 * 60));
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMinutes < 1) return 'agora';
+                if (diffMinutes < 60) return `${diffMinutes}min`;
+                if (diffHours < 24) return `${diffHours}h`;
+                if (diffDays < 7) return `${diffDays}d`;
+                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            } catch (e) {
+                log('Erro ao formatar tempo', { dateString, error: e.message });
+                return '';
+            }
+        }
+
+        // Função para obter emoji do nível
+        function getLevelLabel(level) {
+            const labels = {
+                'beginner': '🌱',
+                'intermediate': '⭐',
+                'advanced': '🚀',
+                'expert': '👑'
+            };
+            return labels[level] || '';
+        }
+
+        function renderStars(rating) {
+            const value = Number(rating) || 0;
+            if (value <= 0) return '';
+            const filledCount = Math.max(0, Math.min(5, Math.round(value)));
+            const emptyCount = Math.max(0, 5 - filledCount);
+            const filled = '★'.repeat(filledCount);
+            const empty = '☆'.repeat(emptyCount);
+            return `${filled}${empty}`;
         }
 
         async function loadMatches() {
             const token = localStorage.getItem('authToken');
-            console.log('🔑 Token:', token ? 'Encontrado' : 'Não encontrado');
+            log('Iniciando carregamento de matches', { token: token ? 'existe' : 'não existe' });
             
             if (!token) {
-                console.log('❌ Sem token, redirecionando para login');
+                log('Token não encontrado, redirecionando para login');
                 window.location.href = 'login.html';
                 return;
             }
 
-            console.log('📡 Carregando matches da API...');
-
             try {
+                log('Fazendo requisição para API');
                 const response = await fetch(`${API_URL}/discover/matches`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                console.log('📥 Resposta da API:', response.status, response.statusText);
+                log('Resposta recebida', { status: response.status, ok: response.ok });
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Dados recebidos:', data);
+                    log('Dados parseados', { matchesCount: data.matches?.length || 0 });
                     
                     allMatches = data.matches || [];
-                    console.log('📊 Total de matches:', allMatches.length);
-                    
                     updateMatchesCount(allMatches.length);
                     displayMatches(allMatches);
                     
-                    // Mostrar filtros se houver matches
                     if (allMatches.length > 0) {
                         document.getElementById('filters-bar').style.display = 'flex';
                     }
                 } else if (response.status === 401 || response.status === 422) {
-                    // Token inválido ou expirado
-                    console.error('❌ Token inválido, redirecionando para login...');
+                    log('Token inválido', { status: response.status });
                     localStorage.removeItem('authToken');
                     window.location.href = 'login.html';
                 } else {
-                    console.error('❌ Erro ao carregar matches:', response.status);
-                    document.getElementById('loading').innerHTML = `
-                        <div style="text-align: center; color: white;">
-                            <p style="font-size: 24px; margin-bottom: 20px;">❌ Erro ao carregar matches</p>
-                            <p style="margin-bottom: 20px;">Código: ${response.status}</p>
-                            <button onclick="loadMatches()" style="padding: 12px 30px; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Tentar novamente</button>
-                        </div>
-                    `;
+                    const errorText = await response.text();
+                    log('Erro na resposta', { status: response.status, error: errorText });
+                    showError(`Erro ao carregar matches (${response.status})`);
                 }
             } catch (error) {
-                console.error('❌ Erro de conexão:', error);
-                document.getElementById('loading').innerHTML = `
-                    <div style="text-align: center; color: white;">
-                        <p style="font-size: 24px; margin-bottom: 20px;">⚠️ Servidor não está respondendo</p>
-                        <p style="margin-bottom: 20px;">Verifique se o servidor Flask está rodando</p>
-                        <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.9;">Erro: ${error.message}</p>
-                        <button onclick="loadMatches()" style="padding: 12px 30px; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Tentar novamente</button>
-                        <br><br>
-                        <a href="menu.html" style="color: white; text-decoration: underline;">← Voltar ao menu</a>
-                    </div>
-                `;
+                log('Erro de conexão', { error: error.message, stack: error.stack });
+                showError('Erro de conexão com o servidor. Verifique se o backend está em execução.');
             } finally {
-                const loadingEl = document.getElementById('loading');
-                if (loadingEl && loadingEl.querySelector('.spinner')) {
-                    console.log('🔄 Escondendo loading...');
-                    loadingEl.style.display = 'none';
-                }
+                document.getElementById('loading').style.display = 'none';
             }
+        }
+
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `
+                <div style="text-align: center; color: white;">
+                    <p style="font-size: 24px; margin-bottom: 20px;">❌ ${escapeHtml(message)}</p>
+                    <button onclick="loadMatches()" style="padding: 12px 30px; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Tentar novamente</button>
+                    <br><br>
+                    <a href="menu.html" style="color: white; text-decoration: underline;">← Voltar ao menu</a>
+                </div>
+            `;
+            loading.style.display = 'block';
         }
 
         function updateMatchesCount(count) {
@@ -513,18 +692,156 @@
             } else {
                 countElement.textContent = `${count} matches encontrados`;
             }
+            log('Contador atualizado', { count });
+        }
+
+        function displayMatches(matches) {
+            log('Renderizando matches', { count: matches.length });
+            
+            const container = document.getElementById('matches-container');
+            const noMatches = document.getElementById('no-matches');
+
+            if (matches.length === 0) {
+                container.style.display = 'none';
+                noMatches.style.display = 'block';
+                log('Nenhum match para exibir');
+                return;
+            }
+
+            noMatches.style.display = 'none';
+            container.style.display = 'grid';
+            
+            try {
+                const html = matches.map((match, index) => {
+                    log(`Renderizando match ${index + 1}`, { name: match.other_user_name });
+                    
+                    const rawName = match.other_user_name || '';
+                    const safeName = escapeHtml(rawName);
+                    const firstName = rawName.split(' ')[0] || rawName;
+                    const safeFirstName = escapeHtml(firstName || 'seu match');
+                    const isTeacher = match.other_user_type === 'teacher';
+                    const emoji = isTeacher ? '👨‍🏫' : '📚';
+                    const typeClass = isTeacher ? 'type-teacher' : 'type-student';
+                    const typeText = isTeacher ? 'Professor' : 'Aluno';
+
+                    const unreadBadge = match.unread_count > 0 
+                        ? `<span class="unread-badge">${match.unread_count} nova${match.unread_count > 1 ? 's' : ''}</span>`
+                        : '';
+
+                    const locationHtml = match.other_user_location 
+                        ? `<span class="match-location">📍 ${escapeHtml(match.other_user_location)}</span>`
+                        : '';
+
+                    const bioHtml = match.other_user_bio 
+                        ? `<div class="match-bio">${escapeHtml(match.other_user_bio)}</div>`
+                        : '';
+
+                    let tagsHtml = '';
+                    if (match.tags && Array.isArray(match.tags) && match.tags.length > 0) {
+                        const tagsContent = match.tags.map(tag => {
+                            const level = tag.level || tag.skill_level || tag.desired_level || '';
+                            const levelLabel = getLevelLabel(level);
+                            const name = tag.name || 'N/A';
+                            return `<span class="tag-item">${escapeHtml(name)}<span class="level">${levelLabel}</span></span>`;
+                        }).join('');
+                        
+                        tagsHtml = `
+                            <div class="match-divider"></div>
+                            <div class="match-tags">${tagsContent}</div>
+                        `;
+                    }
+
+                    let lastMessageHtml = '';
+                    if (match.last_message) {
+                        const sender = match.last_message.is_mine ? '📤 Você:' : `📥 ${safeName}:`;
+                        const time = formatTime(match.last_message.sent_at);
+                        const content = escapeHtml(match.last_message.content);
+                        
+                        lastMessageHtml = `
+                            <div class="last-message">
+                                <div class="last-message-header">${sender} ${time}</div>
+                                <div class="last-message-content">${content}</div>
+                            </div>
+                        `;
+                    } else {
+                        lastMessageHtml = `
+                            <div class="last-message">
+                                <div class="last-message-content" style="text-align:center; color:#999;">
+                                    Nenhuma mensagem ainda. Inicie a conversa! 💬
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    const btnText = match.last_message ? 'Continuar Conversa' : 'Iniciar Conversa';
+                    const myRatingValue = Number(match.my_rating || 0);
+                    const receivedRatingValue = Number(match.received_rating || 0);
+
+                    const myRatingHtml = myRatingValue > 0
+                        ? `<div class="match-rating">⭐ Você avaliou com <span class="stars">${renderStars(myRatingValue)}</span></div>`
+                        : `<div class="match-rating pending">⭐ Avalie ${safeFirstName} para ajudar outros usuários.</div>`;
+
+                    const receivedRatingHtml = receivedRatingValue > 0
+                        ? `<div class="match-rating">🌟 ${safeFirstName} te avaliou com <span class="stars">${renderStars(receivedRatingValue)}</span></div>`
+                        : '';
+
+                    const ratingButtonHtml = myRatingValue > 0
+                        ? ''
+                        : `<button class="rating-secondary-btn" onclick="openChat(${match.match_id}, true)">⭐ Avaliar ${safeFirstName}</button>`;
+
+                    return `
+                        <div class="match-card">
+                            ${unreadBadge}
+                            <div class="match-header">
+                                <div class="match-avatar">${emoji}</div>
+                                <div class="match-info">
+                                    <div class="match-name">${safeName}</div>
+                                    <div class="match-type-location">
+                                        <span class="match-type ${typeClass}">${typeText}</span>
+                                        ${locationHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            ${bioHtml}
+                            ${tagsHtml}
+                            <div class="match-date">✨ Match em ${formatDate(match.matched_at)}</div>
+                            ${lastMessageHtml}
+                            ${myRatingHtml}
+                            ${receivedRatingHtml}
+                            ${ratingButtonHtml}
+                            <button class="chat-btn" onclick="openChat(${match.match_id})">
+                                💬 ${btnText}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = html;
+                log('Matches renderizados com sucesso');
+                
+            } catch (error) {
+                log('Erro ao renderizar matches', { error: error.message, stack: error.stack });
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: 15px;">
+                        <p style="font-size: 20px; color: #ef4444; margin-bottom: 20px;">❌ Erro ao exibir matches</p>
+                        <p style="color: #666;">${escapeHtml(error.message)}</p>
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Recarregar</button>
+                    </div>
+                `;
+            }
         }
 
         function filterMatches(type) {
+            log('Aplicando filtro', { type });
             currentFilter = type;
             
-            // Atualizar botões ativos
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
+                if (btn.dataset.filter === type) {
+                    btn.classList.add('active');
+                }
             });
-            event.target.classList.add('active');
             
-            // Filtrar matches
             let filtered = allMatches;
             
             if (type === 'teacher') {
@@ -539,150 +856,35 @@
             displayMatches(filtered);
         }
 
-        function displayMatches(matches) {
-            const container = document.getElementById('matches-container');
-            const noMatches = document.getElementById('no-matches');
-
-            console.log('displayMatches chamado com', matches.length, 'matches');
-
-            if (matches.length === 0) {
-                container.style.display = 'none';
-                noMatches.style.display = 'block';
-                return;
-            }
-
-            noMatches.style.display = 'none';
-            container.style.display = 'grid';
-            
-            try {
-                container.innerHTML = matches.map(match => {
-                    console.log('Renderizando match:', match.other_user_name);
-                    
-                    const isTeacher = match.other_user_type === 'teacher';
-                    const emoji = isTeacher ? '👨‍🏫' : '📚';
-                    const typeClass = isTeacher ? 'type-teacher' : 'type-student';
-                    const typeText = isTeacher ? 'Professor' : 'Aluno';
-
-                    // Badge de mensagens não lidas
-                    const unreadBadge = match.unread_count > 0 
-                        ? `<span class="unread-badge">${match.unread_count} nova${match.unread_count > 1 ? 's' : ''}</span>`
-                        : '';
-
-                    // Localização
-                    const locationHtml = match.other_user_location 
-                        ? `<span class="match-location">📍 ${escapeHtml(match.other_user_location)}</span>`
-                        : '';
-
-                    // Bio
-                    const bioHtml = match.other_user_bio && match.other_user_bio.trim()
-                        ? `<div class="match-bio">${escapeHtml(match.other_user_bio)}</div>`
-                        : '';
-
-                    // Tags
-                    const tagsHtml = match.tags && match.tags.length > 0
-                        ? `
-                            <div class="match-divider"></div>
-                            <div class="match-tags">
-                                ${match.tags.map(tag => {
-                                    const levelLabel = getLevelLabel(tag.level || tag.skill_level || tag.desired_level);
-                                    return `<span class="tag-item">${escapeHtml(tag.name)}<span class="level">${levelLabel}</span></span>`;
-                                }).join('')}
-                            </div>
-                        `
-                        : '';
-
-                    // Última mensagem
-                    const lastMessageHtml = match.last_message
-                        ? `
-                            <div class="last-message">
-                                <div class="last-message-header">
-                                    ${match.last_message.is_mine ? '📤 Você:' : '📥 ' + escapeHtml(match.other_user_name) + ':'}
-                                    ${formatTime(match.last_message.sent_at)}
-                                </div>
-                                <div class="last-message-content">${escapeHtml(match.last_message.content)}</div>
-                            </div>
-                        `
-                        : '<div class="last-message"><div class="last-message-content" style="text-align:center; color:#999;">Nenhuma mensagem ainda. Inicie a conversa! 💬</div></div>';
-
-                    return `
-                        <div class="match-card" onclick="openChat(${match.match_id}, '${escapeHtml(match.other_user_name).replace(/'/g, "\\'")}')">
-                            ${unreadBadge}
-                            <div class="match-header">
-                                <div class="match-avatar">${emoji}</div>
-                                <div class="match-info">
-                                    <div class="match-name">${escapeHtml(match.other_user_name)}</div>
-                                    <div class="match-type-location">
-                                        <span class="match-type ${typeClass}">${typeText}</span>
-                                        ${locationHtml}
-                                    </div>
-                                </div>
-                            </div>
-                            ${bioHtml}
-                            ${tagsHtml}
-                            <div class="match-date">
-                                ✨ Match em ${formatDate(match.matched_at)}
-                            </div>
-                            ${lastMessageHtml}
-                            <button class="chat-btn" onclick="event.stopPropagation(); window.location.href='chat.html?match_id=${match.match_id}'">
-                                💬 ${match.last_message ? 'Continuar Conversa' : 'Iniciar Conversa'}
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-                
-                console.log('✅ Matches renderizados com sucesso');
-                
-            } catch (error) {
-                console.error('❌ Erro ao renderizar matches:', error);
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: 15px;">
-                        <p style="font-size: 20px; color: #ef4444; margin-bottom: 20px;">❌ Erro ao exibir matches</p>
-                        <p style="color: #666;">${error.message}</p>
-                        <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Recarregar</button>
-                    </div>
-                `;
-            }
-        }
-
-        function getLevelLabel(level) {
-            const labels = {
-                'beginner': '🌱',
-                'intermediate': '⭐',
-                'advanced': '🚀',
-                'expert': '👑'
-            };
-            return labels[level] || '';
-        }
-
-        function formatTime(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMinutes = Math.floor((now - date) / (1000 * 60));
-            const diffHours = Math.floor(diffMinutes / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMinutes < 1) return 'agora';
-            if (diffMinutes < 60) return `${diffMinutes}min`;
-            if (diffHours < 24) return `${diffHours}h`;
-            if (diffDays < 7) return `${diffDays}d`;
-            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        }
-
-        function openChat(matchId, userName) {
-            window.location.href = `chat.html?match_id=${matchId}&name=${encodeURIComponent(userName)}`;
+        function openChat(matchId, openRating = false) {
+            log('Abrindo chat', { matchId, openRating });
+            const targetUrl = openRating
+                ? `chat.html?match_id=${matchId}&rate=1`
+                : `chat.html?match_id=${matchId}`;
+            window.location.href = targetUrl;
         }
 
         function logout() {
+            log('Logout');
             localStorage.clear();
             window.location.href = 'login.html';
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM carregado');
+            
             if (!localStorage.getItem('authToken')) {
+                log('Sem autenticação, redirecionando');
                 window.location.href = 'login.html';
             } else {
                 loadMatches();
             }
+
+            // Adicionar event listeners aos filtros
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => filterMatches(btn.dataset.filter));
+            });
         });
     </script>
 </body>

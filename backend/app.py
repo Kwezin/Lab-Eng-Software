@@ -18,6 +18,7 @@ from routes.auth_routes import auth_bp
 from routes.discover_routes import discover_bp
 from routes.profile_routes import profile_bp
 from routes.chat_routes import chat_bp
+from routes.ratings_routes import ratings_bp
 from database import init_database
 
 def create_app():
@@ -72,6 +73,7 @@ def create_app():
     app.register_blueprint(discover_bp, url_prefix='/api/discover')
     app.register_blueprint(profile_bp, url_prefix='/api/profile')
     app.register_blueprint(chat_bp, url_prefix='/api/chat')
+    app.register_blueprint(ratings_bp, url_prefix='/api/ratings')
     
     # Rota de teste
     @app.route('/api')
@@ -83,7 +85,8 @@ def create_app():
                 'auth': '/api/auth',
                 'discover': '/api/discover',
                 'profile': '/api/profile',
-                'chat': '/api/chat'
+                'chat': '/api/chat',
+                'ratings': '/api/ratings'
             }
         }
     
