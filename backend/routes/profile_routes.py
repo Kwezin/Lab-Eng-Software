@@ -14,6 +14,31 @@ from database import get_db_connection
 profile_bp = Blueprint('profile', __name__)
 
 
+def sanitize_postal_code(value):
+    if value is None:
+        return None
+    digits = ''.join(filter(str.isdigit, str(value)))
+    return digits[:8] if digits else None
+
+
+def normalize_user_field(field, value):
+    if value is None:
+        return None
+
+    if field == 'postal_code':
+        return sanitize_postal_code(value)
+
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        if field == 'address_state':
+            return cleaned[:2].upper()
+        return cleaned
+
+    return value
+
+
 @profile_bp.route('/complete', methods=['POST'])
 @jwt_required()
 def complete_profile():
@@ -67,12 +92,22 @@ def complete_profile():
             'languages',
             'availability',
             'price_per_hour',
-            'credentials'
+            'credentials',
+            'postal_code',
+            'address_street',
+            'address_number',
+            'address_complement',
+            'address_neighborhood',
+            'address_city',
+            'address_state'
         ]
         for f in optional_user_fields:
             if f in data:
+                normalized_value = normalize_user_field(f, data.get(f))
+                if f == 'postal_code' and normalized_value and len(normalized_value) != 8:
+                    return jsonify({'error': 'Informe um CEP válido com 8 dígitos.'}), 400
                 update_fields.append(f)
-                update_values.append(data[f])
+                update_values.append(normalized_value)
 
         # construir a query dinâmica para atualizar usuário
         set_clause = ', '.join([f + ' = ?' for f in update_fields]) + ', updated_at = CURRENT_TIMESTAMP'
@@ -160,7 +195,10 @@ def get_my_profile():
     try:
         # Buscar dados do usuário
         cursor.execute(
-            'SELECT id, name, email, bio, user_type, photo_url, location, languages, availability, price_per_hour, credentials, created_at FROM users WHERE id = ?',
+            '''SELECT id, name, email, bio, user_type, photo_url, location, languages, availability,
+                      price_per_hour, credentials, postal_code, address_street, address_number,
+                      address_complement, address_neighborhood, address_city, address_state, created_at
+               FROM users WHERE id = ?''',
             (current_user_id,)
         )
         user = cursor.fetchone()
@@ -219,11 +257,30 @@ def update_profile():
         update_fields = []
         update_values = []
         
-        basic_fields = ['name', 'bio', 'photo_url', 'location', 'languages', 'availability', 'price_per_hour', 'credentials']
+        basic_fields = [
+            'name',
+            'bio',
+            'photo_url',
+            'location',
+            'languages',
+            'availability',
+            'price_per_hour',
+            'credentials',
+            'postal_code',
+            'address_street',
+            'address_number',
+            'address_complement',
+            'address_neighborhood',
+            'address_city',
+            'address_state'
+        ]
         for field in basic_fields:
             if field in data:
+                normalized_value = normalize_user_field(field, data.get(field))
+                if field == 'postal_code' and normalized_value and len(normalized_value) != 8:
+                    return jsonify({'error': 'Informe um CEP válido com 8 dígitos.'}), 400
                 update_fields.append(field)
-                update_values.append(data[field])
+                update_values.append(normalized_value)
         
         if update_fields:
             set_clause = ', '.join([f'{field} = ?' for field in update_fields]) + ', updated_at = CURRENT_TIMESTAMP'
@@ -305,8 +362,11 @@ def get_user_profile(user_id):
     try:
         # Buscar dados do usuário (sem email e senha)
         cursor.execute(
-            '''SELECT id, name, bio, user_type, photo_url, location, languages, 
-               availability, price_per_hour, credentials FROM users WHERE id = ?''',
+            '''SELECT id, name, bio, user_type, photo_url, location, languages,
+                      availability, price_per_hour, credentials, postal_code, address_street,
+                      address_number, address_complement, address_neighborhood, address_city,
+                      address_state
+               FROM users WHERE id = ?''',
             (user_id,)
         )
         user = cursor.fetchone()

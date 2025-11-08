@@ -142,6 +142,18 @@
             border-radius: 12px;
         }
 
+        .address-lines {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .address-line + .address-line {
+            margin-top: 6px;
+        }
+
         .tags-container {
             display: flex;
             flex-wrap: wrap;
@@ -272,6 +284,11 @@
                     <div class="tags-container" id="interests-container"></div>
                 </div>
 
+                <div class="profile-section" id="address-section" style="display: none;">
+                    <div class="section-title">📍 Endereço</div>
+                    <div class="address-lines" id="address-lines"></div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-number" id="total-matches">0</div>
@@ -329,6 +346,59 @@
             }
         }
 
+        function formatCep(digits) {
+            if (!digits) {
+                return '';
+            }
+            const clean = String(digits).replace(/\D/g, '');
+            if (clean.length !== 8) {
+                return clean;
+            }
+            return `${clean.slice(0, 5)}-${clean.slice(5)}`;
+        }
+
+        function buildAddressLines(profile) {
+            if (!profile) {
+                return [];
+            }
+
+            const lines = [];
+
+            if (profile.location) {
+                lines.push(profile.location);
+            }
+
+            if (profile.address_street) {
+                let streetLine = profile.address_street;
+                if (profile.address_number) {
+                    streetLine += `, ${profile.address_number}`;
+                }
+                lines.push(streetLine);
+            }
+
+            if (profile.address_complement) {
+                lines.push(profile.address_complement);
+            }
+
+            const localityParts = [];
+            if (profile.address_neighborhood) {
+                localityParts.push(profile.address_neighborhood);
+            }
+            const cityState = [profile.address_city, profile.address_state].filter(Boolean).join(' - ');
+            if (cityState) {
+                localityParts.push(cityState);
+            }
+            if (localityParts.length) {
+                lines.push(localityParts.join(' | '));
+            }
+
+            if (profile.postal_code) {
+                lines.push(`CEP: ${formatCep(profile.postal_code)}`);
+            }
+
+            return lines.filter(line => line && line.trim());
+        }
+
         function displayProfile(profile) {
             const isTeacher = profile.user_type === 'teacher';
             const emoji = isTeacher ? '👨‍🏫' : '📚';
@@ -375,6 +445,23 @@
                     `;
                 }).join('');
                 document.getElementById('interests-container').innerHTML = interestsHTML;
+            }
+
+            const addressLines = buildAddressLines(profile);
+            const addressSection = document.getElementById('address-section');
+            const addressContainer = document.getElementById('address-lines');
+            if (addressLines.length) {
+                addressSection.style.display = 'block';
+                addressContainer.innerHTML = '';
+                addressLines.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = 'address-line';
+                    div.textContent = line;
+                    addressContainer.appendChild(div);
+                });
+            } else {
+                addressSection.style.display = 'none';
+                addressContainer.innerHTML = '';
             }
         }
 

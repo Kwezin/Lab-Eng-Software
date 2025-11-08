@@ -36,10 +36,33 @@ def init_database():
             availability TEXT,
             price_per_hour REAL,
             credentials TEXT,
+            postal_code TEXT,
+            address_street TEXT,
+            address_number TEXT,
+            address_complement TEXT,
+            address_neighborhood TEXT,
+            address_city TEXT,
+            address_state TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Garantir que colunas extras existam em bases já criadas
+    cursor.execute('PRAGMA table_info(users)')
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    address_columns = {
+        'postal_code': 'TEXT',
+        'address_street': 'TEXT',
+        'address_number': 'TEXT',
+        'address_complement': 'TEXT',
+        'address_neighborhood': 'TEXT',
+        'address_city': 'TEXT',
+        'address_state': 'TEXT'
+    }
+    for column, definition in address_columns.items():
+        if column not in existing_columns:
+            cursor.execute(f'ALTER TABLE users ADD COLUMN {column} {definition}')
     
     # Tabela de Habilidades/Tags para Professores
     cursor.execute('''
