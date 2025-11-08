@@ -419,9 +419,8 @@
 
     <script>
         // Detectar URL da API
-        const API_BASE = window.location.origin.includes('github.dev') 
-            ? window.location.origin 
-            : 'http://localhost:5000';
+        const origin = window.location.origin;
+        const API_BASE = origin && origin !== 'null' ? origin : 'http://localhost:5000';
         const API_URL = `${API_BASE}/api`;
 
         // Toggle sidebar mobile

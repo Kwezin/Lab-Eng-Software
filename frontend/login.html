@@ -568,10 +568,9 @@
     </div>
 
     <script>
-        // Detectar URL da API automaticamente (localhost ou Codespace)
-        const API_BASE = window.location.origin.includes('github.dev') 
-            ? window.location.origin 
-            : 'http://localhost:5000';
+        // Detectar URL da API automaticamente (localhost, Codespace ou produção)
+        const origin = window.location.origin;
+        const API_BASE = origin && origin !== 'null' ? origin : 'http://localhost:5000';
         const API_URL = `${API_BASE}/api/auth`;
         
         console.log('🌐 API URL detectada:', API_URL);
