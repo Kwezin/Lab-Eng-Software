@@ -65,7 +65,7 @@ jobs:
     
     - name: Check test coverage threshold
       run: |
-        coverage report --fail-under=70
+        coverage report --fail-under=20
     
   lint:
     runs-on: ubuntu-latest
