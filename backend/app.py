@@ -10,6 +10,7 @@ from datetime import timedelta
 import sys
 import os
 
+
 # Adicionar o diretório pai ao path para imports funcionarem
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
