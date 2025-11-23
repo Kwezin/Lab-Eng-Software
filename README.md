@@ -5,7 +5,6 @@
 TINTIN é uma plataforma estilo "Tinder" para conectar professores e alunos. Professores cadastram as habilidades que podem ensinar, alunos cadastram o que querem aprender, e o sistema faz matching inteligente baseado em tags compatíveis.
 
 ## ✨ Funcionalidades
-
 ### 🔐 Autenticação
 - Registro completo em uma única etapa
 - Login com JWT
