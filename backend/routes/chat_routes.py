@@ -12,7 +12,7 @@ import os
 # Adicionar o diretório pai ao path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database import get_db_connection
+from backend.database import get_db_connection
 
 chat_bp = Blueprint('chat', __name__)
 

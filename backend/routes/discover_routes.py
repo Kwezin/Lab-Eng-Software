@@ -11,7 +11,7 @@ import os
 # Adicionar o diretório pai ao path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database import get_db_connection
+from backend.database import get_db_connection
 
 discover_bp = Blueprint('discover', __name__)
 

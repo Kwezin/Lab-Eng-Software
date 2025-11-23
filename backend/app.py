@@ -14,12 +14,12 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importar rotas
-from routes.auth_routes import auth_bp
-from routes.discover_routes import discover_bp
-from routes.profile_routes import profile_bp
-from routes.chat_routes import chat_bp
-from routes.ratings_routes import ratings_bp
-from database import init_database
+from backend.routes.auth_routes import auth_bp
+from backend.routes.discover_routes import discover_bp
+from backend.routes.profile_routes import profile_bp
+from backend.routes.chat_routes import chat_bp
+from backend.routes.ratings_routes import ratings_bp
+from backend.database import init_database
 
 def create_app():
     """Cria e configura a aplicação Flask"""

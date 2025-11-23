@@ -9,7 +9,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import get_db_connection
+from backend.database import get_db_connection
 
 profile_bp = Blueprint('profile', __name__)
 
