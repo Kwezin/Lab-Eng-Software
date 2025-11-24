@@ -53,7 +53,11 @@ TOTAL                               695    549     21%
 - Upload de artefatos (coverage, security reports)
 
 ### 2. Testes Unitários
-✅ Diretório: `tests/`
+✅ Diretório atual: `tests/`
+- `conftest.py` - Fixtures compartilhadas
+- `test_database.py` - Testes do banco de dados
+
+✅ Diretório futuro (implementação completa dos testes): `tests/`
 - `conftest.py` - Fixtures compartilhadas
 - `test_database.py` - Testes do banco de dados
 - `test_auth_routes.py` - Testes de autenticação
