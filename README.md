@@ -1,8 +1,37 @@
 # 🎓 TINTIN - Plataforma de Conexão Professor-Aluno
 
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)](https://flask.palletsprojects.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ## 📖 Sobre o Projeto
 
-TINTIN é uma plataforma estilo "Tinder" para conectar professores e alunos. Professores cadastram as habilidades que podem ensinar, alunos cadastram o que querem aprender, e o sistema faz matching inteligente baseado em tags compatíveis.
+**TINTIN** é uma plataforma inovadora de matching inteligente que conecta professores e alunos de forma eficiente e personalizada. Inspirado no conceito de "swipe", o sistema permite que educadores compartilhem suas habilidades e estudantes encontrem exatamente o que precisam aprender, criando conexões significativas baseadas em compatibilidade real.
+
+### 🌟 Impacto Social e Benefícios
+
+A plataforma TINTIN traz benefícios transformadores para a sociedade:
+
+#### 🎯 **Democratização do Acesso à Educação**
+- **Reduz barreiras geográficas**: Conecta professores e alunos independentemente da localização
+- **Facilita o acesso ao conhecimento**: Qualquer pessoa pode encontrar um professor adequado às suas necessidades
+- **Educação inclusiva**: Suporta diferentes níveis de aprendizado e áreas de conhecimento
+
+#### 💡 **Economia Compartilhada do Conhecimento**
+- **Valoriza profissionais independentes**: Professores autônomos podem encontrar alunos sem intermediários
+- **Networking educacional**: Cria uma comunidade de ensino-aprendizagem colaborativa
+- **Transparência**: Sistema de avaliações garante qualidade e confiança
+
+#### 🚀 **Eficiência e Personalização**
+- **Matching inteligente**: Algoritmo conecta pessoas com interesses compatíveis
+- **Economia de tempo**: Elimina buscas demoradas por professores adequados
+- **Aprendizado customizado**: Cada aluno encontra o professor ideal para suas necessidades específicas
+
+#### 🌍 **Desenvolvimento Social**
+- **Fomenta a educação continuada**: Facilita o aprendizado ao longo da vida
+- **Geração de renda**: Permite que profissionais monetizem seu conhecimento
+- **Combate ao desemprego**: Cria oportunidades para educadores compartilharem expertise
 
 ## ✨ Funcionalidades
 ### 🔐 Autenticação
@@ -81,161 +110,302 @@ Lab-Eng-Software/
 └── README.md                  # Este arquivo
 ```
 
+## � Pré-requisitos
+
+Antes de iniciar, certifique-se de ter instalado em seu sistema:
+
+### Opção 1: Instalação Local
+- **Python 3.11+** - [Download](https://www.python.org/downloads/)
+- **pip** (geralmente já vem com Python)
+- **Git** (opcional, para clonar o repositório)
+
+### Opção 2: Usando Docker (Recomendado para Produção)
+- **Docker** - [Instalação](https://docs.docker.com/get-docker/)
+- **Docker Compose** - [Instalação](https://docs.docker.com/compose/install/)
+
 ## 🚀 Como Executar
 
-### 1. Instalar Dependências
+### 🐳 Método 1: Docker (Recomendado)
+
+A forma mais simples e confiável de executar a aplicação:
 
 ```bash
-pip install flask flask-cors flask-jwt-extended
+# 1. Clone o repositório (se ainda não tiver)
+git clone https://github.com/Kwezin/Lab-Eng-Software.git
+cd Lab-Eng-Software
+
+# 2. Configure variáveis de ambiente (opcional)
+# Crie um arquivo .env com:
+# SECRET_KEY=sua-chave-secreta
+# JWT_SECRET_KEY=sua-chave-jwt-secreta
+
+# 3. Construa e inicie os containers
+docker-compose up -d
+
+# 4. Acesse a aplicação
+# Abra seu navegador em: http://localhost
 ```
 
-### 2. Inicializar Banco de Dados
+**Comandos úteis do Docker:**
+```bash
+# Ver logs da aplicação
+docker-compose logs -f
+
+# Parar a aplicação
+docker-compose down
+
+# Reiniciar a aplicação
+docker-compose restart
+
+# Reconstruir após mudanças no código
+docker-compose up -d --build
+```
+
+### 💻 Método 2: Instalação Local
+
+Para desenvolvimento ou teste local:
+
+#### 1. Instalar Dependências
+
+```bash
+# Clone o repositório
+git clone https://github.com/Kwezin/Lab-Eng-Software.git
+cd Lab-Eng-Software
+
+# Crie um ambiente virtual (recomendado)
+python -m venv venv
+
+# Ative o ambiente virtual
+# No Linux/Mac:
+source venv/bin/activate
+# No Windows:
+venv\Scripts\activate
+
+# Instale as dependências
+pip install -r configuração/requirements.txt
+```
+
+#### 2. Inicializar Banco de Dados
 
 ```bash
 # Criar banco de dados
 python -c "from backend.database import init_database; init_database()"
 
-# Popular com dados de teste
+# Popular com dados de teste (opcional)
 python seed_database.py
 ```
 
-### 3. Iniciar Servidor
+#### 3. Executar a Aplicação
 
 ```bash
+# Usando o script de inicialização
+bash start_server.sh
+
+# OU manualmente
 python backend/app.py
 ```
 
-O servidor estará disponível em:
-- Local: `http://localhost:5000`
-- Frontend: `http://localhost:5000/menu.html`
-- API: `http://localhost:5000/api`
+#### 4. Acessar a Aplicação
 
-### 4. Executar Testes
+Abra seu navegador em: **http://localhost:5000**
+
+### 🧪 Executando Testes
 
 ```bash
-# Testes das novas funcionalidades
-python test_new_features.py
+# Executar todos os testes
+bash run_tests.sh
 
-# Teste de fluxo completo
-python test_complete_flow.py
+# OU executar testes específicos
+pytest test_auth.py -v
+pytest test_complete_flow.py -v
+pytest test_new_features.py -v
 ```
 
-## 🔑 Credenciais de Teste
+## 🎮 Guia de Uso Rápido
 
-Após executar `seed_database.py`, você pode usar:
+### Para Novos Usuários
 
-### Professores:
-- `carlos@example.com` - Senha: `senha123` (Python, JavaScript)
-- `maria@example.com` - Senha: `senha123` (React, SQL)
-- `joao@example.com` - Senha: `senha123` (Figma, Ilustração)
-- `ana@example.com` - Senha: `senha123` (Violão, Musicalização)
-- `pedro@example.com` - Senha: `senha123` (Eletricidade)
+1. **Acesse a plataforma** em http://localhost:5000 (local) ou seu domínio configurado
 
-### Alunos:
-- `lucas@example.com` - Senha: `senha123` (Python, JavaScript)
-- `julia@example.com` - Senha: `senha123` (Violão, Música)
-- `ricardo@example.com` - Senha: `senha123` (Figma, UX)
-- `fernanda@example.com` - Senha: `senha123` (Eletricidade)
-- `gabriel@example.com` - Senha: `senha123` (React, SQL)
+2. **Cadastre-se**:
+   - Clique em "Registrar"
+   - Escolha seu tipo: **Professor** ou **Aluno**
+   - Preencha suas informações básicas
 
-## 📡 API Endpoints
+3. **Complete seu perfil**:
+   - Adicione foto, bio e informações de contato
+   - **Professores**: Liste suas habilidades/skills e preço por hora
+   - **Alunos**: Liste seus interesses/interests que deseja aprender
+
+4. **Descubra matches**:
+   - Navegue até "Descobrir"
+   - Veja perfis compatíveis com seu perfil
+   - Dê **like** (❤️) em perfis interessantes ou **skip** (✕)
+
+5. **Converse**:
+   - Quando ambos derem like, um **match** é criado!
+   - Acesse "Matches" para ver suas conexões
+   - Inicie conversas pelo chat integrado
+
+6. **Avalie**:
+   - Após aulas, avalie seus professores/alunos
+   - Construa sua reputação na plataforma
+
+### 👨‍🏫 Para Professores
+
+```
+Perfil → Adicionar Skills → Descobrir Alunos → Match → Chat → Ensinar → Receber Avaliação
+```
+
+### 🎓 Para Alunos
+
+```
+Perfil → Adicionar Interests → Descobrir Professores → Match → Chat → Aprender → Avaliar
+```
+
+## 🔐 Credenciais de Teste
+
+Se você executou o script `seed_database.py`, pode usar estas contas de teste:
+
+### Professores
+- **Email**: carlos@example.com | **Senha**: senha123 (Python, JavaScript)
+- **Email**: maria@example.com | **Senha**: senha123 (React, SQL)
+- **Email**: joao@example.com | **Senha**: senha123 (Figma, Ilustração)
+
+### Alunos
+- **Email**: lucas@example.com | **Senha**: senha123 (Quer aprender: Python, JavaScript)
+- **Email**: julia@example.com | **Senha**: senha123 (Quer aprender: Violão, Música)
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **[Flask 3.0.0](https://flask.palletsprojects.com/)** - Framework web Python minimalista e poderoso
+- **[SQLite](https://www.sqlite.org/)** - Banco de dados relacional leve e eficiente
+- **[Flask-JWT-Extended 4.6.0](https://flask-jwt-extended.readthedocs.io/)** - Autenticação JWT para APIs seguras
+- **[Flask-CORS 4.0.0](https://flask-cors.readthedocs.io/)** - Gerenciamento de CORS para frontend-backend
+- **[Werkzeug 3.0.1](https://werkzeug.palletsprojects.com/)** - Utilitários WSGI e segurança de senhas
+
+### Frontend
+- **HTML5** - Estrutura semântica moderna
+- **CSS3** - Estilização com gradientes, animações e responsividade
+- **JavaScript (Vanilla)** - Interatividade sem dependências externas
+- **Fetch API** - Requisições HTTP assíncronas
+
+### DevOps
+- **Docker** - Containerização da aplicação
+- **Docker Compose** - Orquestração de containers
+- **pytest** - Framework de testes automatizados
+
+## 📁 Estrutura Detalhada do Projeto
+
+```
+Lab-Eng-Software/
+├── 📁 backend/                     # Código do servidor
+│   ├── app.py                      # Aplicação Flask principal
+│   ├── database.py                 # Configuração e modelos do banco
+│   ├── __init__.py                 # Inicialização do pacote
+│   └── 📁 routes/                  # Módulos de rotas da API
+│       ├── auth_routes.py          # Autenticação (registro/login)
+│       ├── profile_routes.py       # Gerenciamento de perfis
+│       ├── discover_routes.py      # Sistema de descoberta e matching
+│       ├── chat_routes.py          # Chat e mensagens
+│       └── ratings_routes.py       # Sistema de avaliações
+│
+├── 📁 frontend/                    # Interface do usuário
+│   ├── login.html                  # Login e registro
+│   ├── menu.html                   # Dashboard principal
+│   ├── profile.html                # Visualização de perfil
+│   ├── profile_edit.html           # Edição de perfil
+│   ├── discover.html               # Swipe e descoberta
+│   ├── matches.html                # Lista de conexões
+│   └── chat.html                   # Interface de chat
+│
+├── 📁 tests/                       # Testes automatizados
+│   ├── conftest.py                 # Configuração pytest
+│   ├── test_database.py            # Testes de banco
+│   ├── test_auth.py                # Testes de autenticação
+│   ├── test_complete_flow.py       # Testes de integração
+│   └── test_new_features.py        # Testes de novas features
+│
+├── 📁 configuração/                # Arquivos de configuração
+│   ├── requirements.txt            # Dependências Python
+│   ├── start.sh                    # Script de inicialização (Linux/Mac)
+│   └── start.bat                   # Script de inicialização (Windows)
+│
+├── 📄 docker-compose.yml           # Configuração Docker Compose
+├── 📄 Dockerfile                   # Imagem Docker da aplicação
+├── 📄 seed_database.py             # Popular banco com dados de teste
+├── 📄 start_server.sh              # Script para iniciar servidor
+├── 📄 run_tests.sh                 # Script para executar testes
+├── 📄 deploy.sh                    # Script de deploy
+├── 📄 pytest.ini                   # Configuração de testes
+│
+└── 📄 README.md                    # Este arquivo
+```
+
+## 🌐 API Endpoints
 
 ### Autenticação
 - `POST /api/auth/register` - Registrar novo usuário
 - `POST /api/auth/login` - Fazer login
-- `GET /api/auth/validate` - Validar token
 
 ### Perfil
-- `GET /api/profile/me` - Buscar perfil próprio
-- `GET /api/profile/<user_id>` - Buscar perfil público
-- `PUT /api/profile/update` - Atualizar perfil
-- `POST /api/profile/complete` - Completar perfil (opcional)
+- `GET /api/profile` - Obter perfil do usuário logado
+- `PUT /api/profile` - Atualizar perfil
+- `GET /api/profile/<user_id>` - Visualizar perfil de outro usuário
 
-### Descoberta
-- `GET /api/discover/profiles` - Listar perfis disponíveis (com match score)
-- `POST /api/discover/swipe` - Registrar swipe (like/skip)
-- `GET /api/discover/matches` - Listar matches
-- `GET /api/discover/stats` - Estatísticas do usuário
+### Descoberta e Matching
+- `GET /api/discover` - Listar perfis para descobrir
+- `POST /api/interactions` - Registrar like/skip
+- `GET /api/matches` - Listar matches do usuário
 
 ### Chat
-- `POST /api/chat/send` - Enviar mensagem
-- `GET /api/chat/messages/<match_id>` - Buscar mensagens de um chat
-- `GET /api/chat/conversations` - Listar conversas
-- `GET /api/chat/unread-count` - Contar mensagens não lidas
-- `POST /api/chat/mark-read/<match_id>` - Marcar mensagens como lidas
+- `GET /api/matches/<match_id>/messages` - Obter mensagens de um match
+- `POST /api/matches/<match_id>/messages` - Enviar mensagem
+- `PUT /api/matches/<match_id>/read` - Marcar mensagens como lidas
 
-## 🎯 Sistema de Tags
+### Avaliações
+- `POST /api/ratings` - Avaliar usuário
+- `GET /api/ratings/<user_id>` - Obter avaliações de um usuário
 
-### Para Professores (Skills)
-```json
-{
-  "name": "Python",
-  "description": "10 anos de experiência",
-  "level": "expert",
-  "requires_evaluation": true
-}
+## 🔧 Configuração Avançada
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto para configurações personalizadas:
+
+```env
+# Segurança
+SECRET_KEY=sua-chave-secreta-super-segura-aqui
+JWT_SECRET_KEY=sua-chave-jwt-super-segura-aqui
+
+# Flask
+FLASK_ENV=production
+FLASK_DEBUG=0
+
+# Banco de Dados
+DATABASE_PATH=/app/data/database.db
+
+# Servidor
+PORT=5000
+HOST=0.0.0.0
 ```
 
-**Campos:**
-- `name` - Nome da habilidade (obrigatório)
-- `description` - Descrição da experiência
-- `level` - Nível: `beginner`, `intermediate`, `advanced`, `expert`
-- `requires_evaluation` - Se exige avaliação prévia (boolean)
+### Deploy em Produção
 
-### Para Alunos (Interests)
-```json
-{
-  "name": "Python",
-  "difficulty": "beginner",
-  "description": "Quero aprender do zero",
-  "desired_level": "intermediate",
-  "requires_evaluation": false
-}
-```
+Para deploy, consulte o arquivo [deploy.sh](deploy.sh) que contém scripts automatizados.
 
-**Campos:**
-- `name` - Nome do interesse (obrigatório)
-- `difficulty` - Nível atual: `beginner`, `intermediate`, `advanced`
-- `description` - Descrição do objetivo
-- `desired_level` - Nível que deseja atingir
-- `requires_evaluation` - Se solicita avaliação antes de iniciar (boolean)
-
-## 📊 Match Score
-
-O sistema calcula um **match score** baseado na interseção de tags:
-
-- Quando **student** busca **teachers**: compara `student.interests` com `teacher.skills`
-- Quando **teacher** busca **students**: compara `teacher.skills` com `student.interests`
-- Cada tag compatível adiciona +1 ao score
-- Perfis são ordenados por score decrescente (mais relevantes primeiro)
-
-**Exemplo:**
-- Student quer aprender: `["Python", "JavaScript"]`
-- Teacher ensina: `["Python", "JavaScript", "React"]`
-- **Match Score: 2** ✨
-
-## 🎨 Próximas Melhorias
-
-### Backend
-- [ ] Sistema de avaliações por skill específica
-- [ ] Filtros avançados (localização, preço, idioma)
-- [ ] Sistema de notificações em tempo real (WebSockets)
-- [ ] Upload de fotos
-- [ ] Verificação de email
-
-### Frontend
-- [ ] Atualizar formulário de registro com novos campos
-- [ ] Exibir badges de avaliação (🔍) nas tags
-- [ ] Mostrar match score nos cards
-- [ ] Adicionar filtros de busca
-- [ ] Melhorar UX do chat (scroll automático, typing indicator)
-- [ ] Dashboard com estatísticas
-
-## 📝 Changelog
-
-Consulte [CHANGELOG.md](CHANGELOG.md) para ver o histórico de alterações detalhado.
+**Recomendações de segurança para produção:**
+1. ✅ Altere `SECRET_KEY` e `JWT_SECRET_KEY`
+2. ✅ Configure HTTPS/SSL
+3. ✅ Use um banco de dados robusto (PostgreSQL/MySQL)
+4. ✅ Configure backups automáticos
+5. ✅ Implemente rate limiting
+6. ✅ Configure monitoramento e logs
 
 ## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Para contribuir:
 
 1. Fork o projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/NovaFuncionalidade`)
@@ -243,10 +413,35 @@ Consulte [CHANGELOG.md](CHANGELOG.md) para ver o histórico de alterações deta
 4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## 📝 Licença
 
-Este projeto é parte da disciplina de Engenharia de Software.
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👥 Autores
+
+- **Kwezin** - [GitHub](https://github.com/Kwezin)
+
+## 📞 Suporte
+
+Se encontrar problemas ou tiver dúvidas:
+
+1. Verifique a [documentação completa](IMPLEMENTACAO_COMPLETA.md)
+2. Consulte os [testes](TESTES.md) para exemplos de uso
+3. Abra uma [issue no GitHub](https://github.com/Kwezin/Lab-Eng-Software/issues)
+
+## 🎯 Roadmap Futuro
+
+- [ ] Notificações push em tempo real
+- [ ] Filtros avançados de busca
+- [ ] Sistema de pagamento integrado
+- [ ] App mobile (React Native)
+- [ ] Videochamadas integradas
+- [ ] Gamificação e badges
+- [ ] Dashboard de estatísticas para professores
+- [ ] Sistema de agendamento de aulas
 
 ---
 
-Desenvolvido com 💜 pela equipe TINTIN
+⭐ **Se este projeto te ajudou, considere dar uma estrela no GitHub!**
+
+Desenvolvido com ❤️ para democratizar o acesso à educação
